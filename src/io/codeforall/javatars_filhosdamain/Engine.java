@@ -11,16 +11,14 @@ import org.academiadecodigo.simplegraphics.keyboard.KeyboardHandler;
 
 public class Engine {
 
-    Canvas canvas;
-
-    public Engine() {
-        canvas = Canvas.getInstance();
+/*    public Engine() {
+        Canvas canvas = Canvas.getInstance();
         Canvas.limitCanvasWidth(800);
         Canvas.limitCanvasHeight(600);
         Menu menu = new Menu(canvas);
-        menu.initMenu();
+        Game game = new Game(canvas);
         //registerKeyboardEvents();
-    }
+    }*/
 
     /*private void registerKeyboardEvents() {
         Keyboard keyboard = new Keyboard(this);
@@ -73,6 +71,13 @@ public class Engine {
     }*/
 
     public static void main(String[] args) {
-        new Engine();
+        //new Engine();
+        Canvas canvas = Canvas.getInstance();
+        Canvas.limitCanvasWidth(800);
+        Canvas.limitCanvasHeight(600);
+        Menu menu = new Menu(canvas);
+        //Game game = new Game(canvas);
+        menu.initMenu();
+
     }
 }

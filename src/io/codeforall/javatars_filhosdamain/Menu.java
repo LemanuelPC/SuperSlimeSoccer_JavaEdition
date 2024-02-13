@@ -9,24 +9,32 @@ import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEventType;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardHandler;
 
-public class Menu implements KeyboardHandler {
+public class Menu implements MenuKeyboardHandler {
 
     private Canvas canvas;
+    private boolean isVisible;
     Slime slime2;
     private Game game;
     private boolean escPressed = false;
     private boolean pPressed = false;
     public Menu(Canvas canvas){
         this.canvas = canvas;
-        registerKeyboardEvents();
     }
     private int currentOption = 0;
-    private final String[] menuOptions = {"Start Game", "Config", "Exit Game", "Start New Game 2"};
+    private final String[] menuOptions = {"Start Game", "Config", "Exit Game"};
     private final Text[] menuTexts = new Text[menuOptions.length];
 
     public void initMenu() {
+        registerKeyboardEvents();
+        isVisible = true;
         for (int i = 0; i < menuOptions.length; i++) {
             menuTexts[i] = new Text(350, 250 + (i * 50), menuOptions[i]);
+        }
+        showMenu();
+    }
+
+    private void showMenu(){
+        for (int i = 0; i < menuOptions.length; i++) {
             canvas.show(menuTexts[i]);
         }
         updateMenuDisplay();
@@ -34,8 +42,10 @@ public class Menu implements KeyboardHandler {
 
     public void hideMenu(){
         for (int i = 0; i < menuOptions.length; i++) {
-            canvas.hide(menuTexts[i]);
+            //canvas.hide(menuTexts[i]);
+           menuTexts[i].delete();
         }
+        isVisible = false;
         System.out.println("Hiding menu");
     }
 
@@ -46,12 +56,13 @@ public class Menu implements KeyboardHandler {
     }
 
     private void registerKeyboardEvents() {
-        Keyboard keyboard = new Keyboard(this);
+        Keyboard keyboard2 = new Keyboard(this);
         int[] keys = {KeyboardEvent.KEY_UP, KeyboardEvent.KEY_DOWN, KeyboardEvent.KEY_ENTER, KeyboardEvent.KEY_ESC, KeyboardEvent.KEY_P};
         for (int key : keys) {
-            keyboard.addEventListener(createKeyboardEvent(key, KeyboardEventType.KEY_PRESSED));
-            keyboard.addEventListener(createKeyboardEvent(key, KeyboardEventType.KEY_RELEASED));
+            keyboard2.addEventListener(createKeyboardEvent(key, KeyboardEventType.KEY_PRESSED));
+            keyboard2.addEventListener(createKeyboardEvent(key, KeyboardEventType.KEY_RELEASED));
         }
+        System.out.println(keyboard2);
     }
 
     private KeyboardEvent createKeyboardEvent(int key, KeyboardEventType type) {
@@ -66,14 +77,24 @@ public class Menu implements KeyboardHandler {
         switch (e.getKey()) {
             case KeyboardEvent.KEY_UP:
                 currentOption = (currentOption - 1 + menuOptions.length) % menuOptions.length;
-                updateMenuDisplay();
+                if (isVisible) {
+                    updateMenuDisplay();
+                }
                 break;
             case KeyboardEvent.KEY_DOWN:
                 currentOption = (currentOption + 1) % menuOptions.length;
-                updateMenuDisplay();
+                if (isVisible) {
+                    updateMenuDisplay();
+                }
                 break;
             case KeyboardEvent.KEY_ENTER:
-                executeSelectedOption();
+                if (isVisible) {
+                    try {
+                        executeSelectedOption();
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
                 break;
             case KeyboardEvent.KEY_ESC:
                 escPressed = true;
@@ -90,7 +111,7 @@ public class Menu implements KeyboardHandler {
         // Optional: Implement if needed for finer control over key events
     }
 
-    private void executeSelectedOption() {
+    private void executeSelectedOption() throws InterruptedException {
         switch (currentOption) {
             case 0:
                 // Start the game
@@ -103,9 +124,6 @@ public class Menu implements KeyboardHandler {
             case 2:
                 // Exit the game
                 System.exit(0);
-                break;
-            case 3:
-                startNewGame();
                 break;
         }
     }
@@ -122,8 +140,9 @@ public class Menu implements KeyboardHandler {
         initMenu();
     }
 
-    public void startNewGame(){
+    public void startNewGame() throws InterruptedException {
         hideMenu();
+        System.out.println(canvas);
         game = new Game(canvas);
     }
 

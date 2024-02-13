@@ -9,10 +9,10 @@ import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEventType;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardHandler;
 
-public class Game implements KeyboardHandler {
+public class Game implements GameKeyboardHandler {
 
 //    Slime player1 = new Slime();
-    Canvas canvas;
+    private Canvas canvas;
 
     public Game(Canvas canvas){
         this.canvas = canvas;
@@ -129,6 +129,7 @@ public class Game implements KeyboardHandler {
 
         registerKey(KeyboardEvent.KEY_P, KeyboardEventType.KEY_PRESSED);
         registerKey(KeyboardEvent.KEY_ESC, KeyboardEventType.KEY_PRESSED);
+        System.out.println(keyboard);
     }
 
     private void registerKey(int key, KeyboardEventType type) {
@@ -155,6 +156,7 @@ public class Game implements KeyboardHandler {
                 break;
             case KeyboardEvent.KEY_P:
                 pPressed = !pPressed;
+
                 break;
             case KeyboardEvent.KEY_ESC:
                 escPressed = true;
@@ -201,9 +203,7 @@ public class Game implements KeyboardHandler {
     private void gameStart() {
         System.out.println(ball);
         while (!escPressed) {
-            System.out.println("2");
             if (!pPressed) {
-                System.out.println("3");
                 ball.translate(ballSpeedX, ballSpeedY);
 
                 if (ball.getX() < -ball.getWidth() || ball.getX() > canvasWidth + ball.getWidth()) {
