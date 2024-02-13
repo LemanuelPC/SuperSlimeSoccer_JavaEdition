@@ -14,8 +14,11 @@ public class Game implements KeyboardHandler {
     private final String[] menuOptions = {"Start Game", "Config", "Exit Game"};
     private final Text[] menuTexts = new Text[menuOptions.length];
     Canvas canvas;
+    public SlimeS_field screen;
 
     public Game() {
+        screen = new SlimeS_field();
+
         canvas = Canvas.getInstance();
         Canvas.limitCanvasWidth(800);
         Canvas.limitCanvasHeight(600);
@@ -79,7 +82,10 @@ public class Game implements KeyboardHandler {
         switch (currentOption) {
             case 0:
                 // Start the game
-                startGame();
+               //startGame();
+                canvas.hide();
+                screen.init();
+                System.exit(0);
                 break;
             case 1:
                 // Open configuration settings
@@ -93,6 +99,7 @@ public class Game implements KeyboardHandler {
     }
 
     private void startGame() {
+        screen.gameStart();
         // Initialize game entities and start the game loop
     }
 
