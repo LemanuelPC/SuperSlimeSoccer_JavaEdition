@@ -1,11 +1,5 @@
 package io.codeforall.javatars_filhosdamain.players;
 
-import io.codeforall.javatars_filhosdamain.Interactable;
-import io.codeforall.javatars_filhosdamain.Position;
-import org.academiadecodigo.simplegraphics.graphics.Movable;
-import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
-import org.academiadecodigo.simplegraphics.pictures.Picture;
-
 
 /*public class Slime implements Movable, Interactable {
 

@@ -75,6 +75,18 @@ public class KeyboardListener implements KeyboardHandler {
 
         keyboard.addEventListener(s);
 
+        KeyboardEvent a = new KeyboardEvent();
+        a.setKeyboardEventType(KeyboardEventType.KEY_PRESSED);
+        a.setKey(KeyboardEvent.KEY_A);
+
+        keyboard.addEventListener(a);
+
+        KeyboardEvent d = new KeyboardEvent();
+        d.setKeyboardEventType(KeyboardEventType.KEY_PRESSED);
+        d.setKey(KeyboardEvent.KEY_D);
+
+        keyboard.addEventListener(d);
+
         KeyboardEvent p = new KeyboardEvent();
         p.setKeyboardEventType(KeyboardEventType.KEY_PRESSED);
         p.setKey(KeyboardEvent.KEY_P);
@@ -89,7 +101,8 @@ public class KeyboardListener implements KeyboardHandler {
 
 
         //RELEASE IMPLEMENTATION
-        KeyboardEvent upRelease = new KeyboardEvent();
+
+        /*KeyboardEvent upRelease = new KeyboardEvent();
         upRelease.setKeyboardEventType(KeyboardEventType.KEY_RELEASED);
         upRelease.setKey(KeyboardEvent.KEY_UP);
 
@@ -141,7 +154,7 @@ public class KeyboardListener implements KeyboardHandler {
         escRelease.setKeyboardEventType(KeyboardEventType.KEY_RELEASED);
         escRelease.setKey(KeyboardEvent.KEY_ESC);
 
-        keyboard.addEventListener(escRelease);
+        keyboard.addEventListener(escRelease);*/
 
     }
 

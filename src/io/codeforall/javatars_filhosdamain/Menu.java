@@ -21,6 +21,7 @@ public class Menu implements Interactable {
     }
 
     public void display() {
+        game.setMenuOpened(true);
         game.setKeyboardListenerEntity(this);
         isVisible = true;
         background = new Picture(0, 0, "data/sprites/feild.png");
@@ -39,6 +40,7 @@ public class Menu implements Interactable {
             }
         }
         updateMenuDisplay();
+        System.out.println("menu visible: " + isVisible);
 
     }
 
@@ -48,6 +50,8 @@ public class Menu implements Interactable {
         }
         background.delete();
         isVisible = false;
+        System.out.println("menu visible: " + isVisible);
+        game.setMenuOpened(false);
     }
 
     public void updateMenuDisplay() {
@@ -75,8 +79,13 @@ public class Menu implements Interactable {
         switch (currentOption) {
             case 0:
                 // Start the game
+                if(game.isPauseGame()) {
+                    clearDisplay();
+                    game.setPauseGame(false);
+                    game.resumeGame();
+                    break;
+                }
                 game.setStartGame();
-                game.setPauseGame(false);
                 break;
             case 1:
                 // Open configuration settings

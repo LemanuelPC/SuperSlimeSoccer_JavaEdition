@@ -7,6 +7,7 @@ public class Game {
     private KeyboardListener keyboardListener;
     private boolean startGame;
     private boolean pauseGame;
+    private boolean menuOpened;
 
     public void init() {
         keyboardListener = new KeyboardListener();
@@ -14,6 +15,7 @@ public class Game {
 
         //keyboardListener.setEntity(menu);
         menu.display();
+
 
         while (true) {
             try {
@@ -46,6 +48,7 @@ public class Game {
     }
 
     public void resumeGame(){
+        menu.clearDisplay();
         match.showGame();
     }
 
@@ -63,5 +66,13 @@ public class Game {
 
     public void setPauseGame(boolean state) {
         this.pauseGame = state;
+    }
+
+    public boolean isMenuOpened() {
+        return menuOpened;
+    }
+
+    public void setMenuOpened(boolean menuOpened) {
+        this.menuOpened = menuOpened;
     }
 }
