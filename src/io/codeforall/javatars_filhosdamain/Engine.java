@@ -1,13 +1,6 @@
 package io.codeforall.javatars_filhosdamain;
 
-import io.codeforall.javatars_filhosdamain.players.Slime;
 import org.academiadecodigo.simplegraphics.graphics.Canvas;
-import org.academiadecodigo.simplegraphics.graphics.Color;
-import org.academiadecodigo.simplegraphics.graphics.Text;
-import org.academiadecodigo.simplegraphics.keyboard.Keyboard;
-import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
-import org.academiadecodigo.simplegraphics.keyboard.KeyboardEventType;
-import org.academiadecodigo.simplegraphics.keyboard.KeyboardHandler;
 
 public class Engine {
 
@@ -75,9 +68,11 @@ public class Engine {
         Canvas canvas = Canvas.getInstance();
         Canvas.limitCanvasWidth(800);
         Canvas.limitCanvasHeight(600);
-        Menu menu = new Menu(canvas);
-        //Game game = new Game(canvas);
-        menu.initMenu();
+        Game game = new Game(canvas);
+        //Menu menu = new Menu(canvas);
+        //Match match = new Match(canvas);
+        //menu.initMenu();
+        game.init();
 
     }
 }

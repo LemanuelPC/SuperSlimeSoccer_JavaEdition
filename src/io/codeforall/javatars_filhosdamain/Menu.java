@@ -9,12 +9,13 @@ import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEventType;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardHandler;
 
-public class Menu implements MenuKeyboardHandler {
+public class Menu implements KeyboardHandler {
 
     private Canvas canvas;
+    private Game game;
     private boolean isVisible;
     Slime slime2;
-    private Game game;
+    private Match match;
     private boolean escPressed = false;
     private boolean pPressed = false;
     public Menu(Canvas canvas){
@@ -23,6 +24,11 @@ public class Menu implements MenuKeyboardHandler {
     private int currentOption = 0;
     private final String[] menuOptions = {"Start Game", "Config", "Exit Game"};
     private final Text[] menuTexts = new Text[menuOptions.length];
+
+    public Menu(Canvas canvas, Game game){
+        this.canvas = canvas;
+        this.game = game;
+    }
 
     public void initMenu() {
         registerKeyboardEvents();
@@ -89,11 +95,7 @@ public class Menu implements MenuKeyboardHandler {
                 break;
             case KeyboardEvent.KEY_ENTER:
                 if (isVisible) {
-                    try {
-                        executeSelectedOption();
-                    } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    executeSelectedOption();
                 }
                 break;
             case KeyboardEvent.KEY_ESC:
@@ -111,7 +113,7 @@ public class Menu implements MenuKeyboardHandler {
         // Optional: Implement if needed for finer control over key events
     }
 
-    private void executeSelectedOption() throws InterruptedException {
+    private void executeSelectedOption() {
         switch (currentOption) {
             case 0:
                 // Start the game
@@ -140,10 +142,13 @@ public class Menu implements MenuKeyboardHandler {
         initMenu();
     }
 
-    public void startNewGame() throws InterruptedException {
+    public void startNewGame() {
+        System.out.println("DEBUG 1");
         hideMenu();
+        System.out.println("DEBUG 2");
         System.out.println(canvas);
-        game = new Game(canvas);
+        System.out.println("DEBUG 3");
+        game.startGame();
     }
 
 }
