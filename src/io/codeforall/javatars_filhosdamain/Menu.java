@@ -1,58 +1,53 @@
 package io.codeforall.javatars_filhosdamain;
 
-import io.codeforall.javatars_filhosdamain.players.Slime;
-import org.academiadecodigo.simplegraphics.graphics.Canvas;
 import org.academiadecodigo.simplegraphics.graphics.Color;
 import org.academiadecodigo.simplegraphics.graphics.Text;
-import org.academiadecodigo.simplegraphics.keyboard.Keyboard;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
-import org.academiadecodigo.simplegraphics.keyboard.KeyboardEventType;
-import org.academiadecodigo.simplegraphics.keyboard.KeyboardHandler;
+import org.academiadecodigo.simplegraphics.pictures.Picture;
 
-public class Menu implements KeyboardHandler {
+public class Menu implements Interactable {
 
-    private Canvas canvas;
-    private Game game;
+    private Picture background;
     private boolean isVisible;
-    Slime slime2;
-    private Match match;
-    private boolean escPressed = false;
-    private boolean pPressed = false;
-    public Menu(Canvas canvas){
-        this.canvas = canvas;
-    }
+    private Text pressSpaceText;
     private int currentOption = 0;
     private final String[] menuOptions = {"Start Game", "Config", "Exit Game"};
+    private final String[] menuOptions2 = {"Resume Game", "Config", "Exit Game"};
     private final Text[] menuTexts = new Text[menuOptions.length];
+    Game game;
 
-    public Menu(Canvas canvas, Game game){
-        this.canvas = canvas;
+    public Menu(Game game){
         this.game = game;
     }
 
-    public void initMenu() {
-        registerKeyboardEvents();
+    public void display() {
+        game.setKeyboardListenerEntity(this);
         isVisible = true;
-        for (int i = 0; i < menuOptions.length; i++) {
-            menuTexts[i] = new Text(350, 250 + (i * 50), menuOptions[i]);
-        }
-        showMenu();
-    }
+        background = new Picture(0, 0, "data/sprites/feild.png");
+        background.draw();
 
-    private void showMenu(){
-        for (int i = 0; i < menuOptions.length; i++) {
-            canvas.show(menuTexts[i]);
+        if(game.isStartGame()) {
+            for (int i = 0; i < menuOptions.length; i++) {
+                menuTexts[i] = new Text(350, 250 + (i * 50), menuOptions2[i]);
+                menuTexts[i].draw();
+            }
+        }
+        else{
+            for (int i = 0; i < menuOptions.length; i++) {
+                menuTexts[i] = new Text(350, 250 + (i * 50), menuOptions[i]);
+                menuTexts[i].draw();
+            }
         }
         updateMenuDisplay();
+
     }
 
-    public void hideMenu(){
+    public void clearDisplay(){
         for (int i = 0; i < menuOptions.length; i++) {
-            //canvas.hide(menuTexts[i]);
-           menuTexts[i].delete();
+            menuTexts[i].delete();
         }
+        background.delete();
         isVisible = false;
-        System.out.println("Hiding menu");
     }
 
     public void updateMenuDisplay() {
@@ -61,94 +56,37 @@ public class Menu implements KeyboardHandler {
         }
     }
 
-    private void registerKeyboardEvents() {
-        Keyboard keyboard2 = new Keyboard(this);
-        int[] keys = {KeyboardEvent.KEY_UP, KeyboardEvent.KEY_DOWN, KeyboardEvent.KEY_ENTER, KeyboardEvent.KEY_ESC, KeyboardEvent.KEY_P};
-        for (int key : keys) {
-            keyboard2.addEventListener(createKeyboardEvent(key, KeyboardEventType.KEY_PRESSED));
-            keyboard2.addEventListener(createKeyboardEvent(key, KeyboardEventType.KEY_RELEASED));
-        }
-        System.out.println(keyboard2);
-    }
-
-    private KeyboardEvent createKeyboardEvent(int key, KeyboardEventType type) {
-        KeyboardEvent event = new KeyboardEvent();
-        event.setKey(key);
-        event.setKeyboardEventType(type);
-        return event;
-    }
-
     @Override
-    public void keyPressed(KeyboardEvent e) {
-        switch (e.getKey()) {
-            case KeyboardEvent.KEY_UP:
-                currentOption = (currentOption - 1 + menuOptions.length) % menuOptions.length;
-                if (isVisible) {
-                    updateMenuDisplay();
-                }
-                break;
-            case KeyboardEvent.KEY_DOWN:
-                currentOption = (currentOption + 1) % menuOptions.length;
-                if (isVisible) {
-                    updateMenuDisplay();
-                }
-                break;
-            case KeyboardEvent.KEY_ENTER:
-                if (isVisible) {
-                    executeSelectedOption();
-                }
-                break;
-            case KeyboardEvent.KEY_ESC:
-                escPressed = true;
-                hideConfig();
-                break;
-            case KeyboardEvent.KEY_P:
-                pPressed = true;
-                break;
+    public void setKey(int key, boolean state) {
+        if (key == KeyboardEvent.KEY_UP){
+            currentOption = (currentOption - 1 + menuOptions.length) % menuOptions.length;
+            updateMenuDisplay();
         }
-    }
-
-    @Override
-    public void keyReleased(KeyboardEvent e) {
-        // Optional: Implement if needed for finer control over key events
+        if (key == KeyboardEvent.KEY_DOWN){
+            currentOption = (currentOption + 1) % menuOptions.length;
+            updateMenuDisplay();
+        }
+        if (key == KeyboardEvent.KEY_SPACE) {
+            executeSelectedOption();
+        }
     }
 
     private void executeSelectedOption() {
         switch (currentOption) {
             case 0:
                 // Start the game
-                startNewGame();
+                game.setStartGame();
+                game.setPauseGame(false);
                 break;
             case 1:
                 // Open configuration settings
-                openConfig();
+                //openConfig();
                 break;
             case 2:
                 // Exit the game
                 System.exit(0);
                 break;
         }
-    }
-
-
-    public void openConfig(){
-        slime2 = new Slime();
-        hideMenu();
-        canvas.show(slime2.getSlime());
-    }
-
-    public void hideConfig(){
-        canvas.hide(slime2.getSlime());
-        initMenu();
-    }
-
-    public void startNewGame() {
-        System.out.println("DEBUG 1");
-        hideMenu();
-        System.out.println("DEBUG 2");
-        System.out.println(canvas);
-        System.out.println("DEBUG 3");
-        game.startGame();
     }
 
 }
