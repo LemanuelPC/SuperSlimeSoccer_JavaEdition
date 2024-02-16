@@ -15,45 +15,27 @@ public class Ball{
     }
 
     // Method to update the ball's position based on its velocity
-    public void update(int CANVAS_WIDTH, int CANVAS_HEIGHT) {
-        // Apply velocity to position
+    public void update() {
+        // Predict the next position
         double nextX = position.x + velocity.x;
         double nextY = position.y + velocity.y;
 
-        // Adjust for the radius of the ball for boundary checks
-        double radius = (double) ellipse.getWidth() / 2;
-
-        // Left boundary
-        if (nextX < 10 + radius) {
-            velocity.x = 0; // Stop horizontal movement
-            nextX = 10 + radius; // Adjust position to boundary
+        // Correct the position if it's going to be out of bounds
+        if (nextX < 10 || nextX > Match.FIELD_WIDTH) { // Assuming the ball diameter is 20
+            velocity.x *= -0.9; // Reverse and reduce speed slightly for bounce effect
+            nextX = position.x; // Revert the horizontal movement
         }
-        // Right boundary
-        if (nextX > CANVAS_WIDTH  - radius) {
-            velocity.x = 0; // Stop horizontal movement
-            nextX = CANVAS_WIDTH - radius; // Adjust position
-        }
-        // Bottom boundary
-        if (nextY > CANVAS_HEIGHT - 10 - radius) {
-            velocity.y = 0; // Stop vertical movement
-            nextY = CANVAS_HEIGHT - 10 - radius; // Adjust position
-        }
-        // Top boundary
-        if (nextY < 10 + radius) {
-            velocity.y = 0; // Stop vertical movement
-            nextY = 10 + radius; // Adjust position
+        if (nextY < 10 || nextY > Match.FIELD_HEIGHT) {
+            velocity.y *= -0.4; // Reverse and reduce speed slightly for bounce effect
+            nextY = position.y; // Revert the vertical movement
         }
 
-        // Calculate the translation needed
-        double translateX = nextX - position.x;
-        double translateY = nextY - position.y;
-
-        // Apply the translation to the ellipse for visual update
-        ellipse.translate(translateX, translateY);
-
-        // Update the position to the new corrected position
+        // Update the position with corrected values
         position.x = nextX;
         position.y = nextY;
+
+        // Apply the movement
+        ellipse.translate(velocity.x, velocity.y);
     }
 
     public boolean intersects(Rectangle rect) {
@@ -79,10 +61,12 @@ public class Ball{
     }
 
     public boolean isOnGround(int CANVAS_HEIGHT) {
-        return this.position.y + (double) this.ellipse.getHeight() / 2 >= CANVAS_HEIGHT - 10;
+        return this.position.y + (double) this.ellipse.getHeight() / 2 >= CANVAS_HEIGHT+10;
     }
 
     public boolean isMoving() {
         return this.velocity.x != 0;
     }
 }
+
+

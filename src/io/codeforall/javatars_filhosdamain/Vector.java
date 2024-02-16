@@ -32,4 +32,14 @@ public class Vector {
     public double getMagnitude() {
         return Math.sqrt(x * x + y * y);
     }
+
+    @Override
+    public String toString() {
+        return "Vector{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }
+
+

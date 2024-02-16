@@ -1,6 +1,5 @@
 package io.codeforall.javatars_filhosdamain;
 
-import org.academiadecodigo.simplegraphics.graphics.Canvas;
 import org.academiadecodigo.simplegraphics.graphics.Color;
 import org.academiadecodigo.simplegraphics.graphics.Rectangle;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
@@ -19,9 +18,10 @@ public class Match implements Interactable {
     private static final double MAX_BOUNCE_ANGLE = Math.toRadians(75);
 
     private Game game;
-    private Player player1, player2;
-    private Rectangle goal1, goal2, field, back;
-    private Ball ball;
+    private Player2 player1, player2;
+    private Rectangle goal1, goal2, back;
+    private Field field;
+    private Ball2 ball;
     private boolean upPressed = false;
     private boolean aPressed = false;
     private boolean wPressed = false;
@@ -38,12 +38,17 @@ public class Match implements Interactable {
         System.out.println("Initializing game");
 
         back = new Rectangle(-10, -10, 800, 800);
-        player1 = new Player(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 105, 50);
-        player2 = new Player(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 105, 50);
-        ball = new Ball((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 20);
+
+        field = new Field(PADDING, FIELD_WIDTH, FIELD_HEIGHT);
+
+        player1 = new Player2(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 105, 50);
+        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 105, 50);
+
+        ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 20);
+
         goal1 = new Rectangle(10, FIELD_HEIGHT + PADDING - 115, 70, 115);
         goal2 = new Rectangle(FIELD_WIDTH -60, FIELD_HEIGHT + PADDING - 115, 70, 115);
-        field = new Rectangle(10, 10, FIELD_WIDTH, FIELD_HEIGHT);
+
 
         back.setColor(Color.YELLOW);
         player1.rectangle.setColor(Color.RED);
@@ -51,7 +56,7 @@ public class Match implements Interactable {
         ball.ellipse.setColor(Color.BLACK);
         goal1.setColor(Color.BLACK);
         goal2.setColor(Color.BLACK);
-        field.setColor(Color.BLACK);
+        field.field.setColor(Color.BLACK);
 
         showGame();
 
@@ -69,7 +74,7 @@ public class Match implements Interactable {
         ball.ellipse.fill();
         goal1.draw();
         goal2.draw();
-        field.draw();
+        field.field.draw();
 
     }
 
@@ -79,14 +84,21 @@ public class Match implements Interactable {
         ball.ellipse.delete();
         goal1.delete();
         goal2.delete();
-        field.delete();
+        field.field.delete();
     }
 
     void applyGravity() {
-        if (!ball.isOnGround(FIELD_HEIGHT+PADDING)) {
+        if (!ball.isOnGround(field) && !ball.intersects(player1) && !ball.intersects(player2)) {
             ball.velocity.y += GRAVITY; // gravity is a constant, e.g., 0.98
         }
-        for (Player player : new Player[]{player1, player2}) {
+        if (ball.isOnGround(field)) {
+            System.out.println("******* isOnGround == True *******");
+            System.out.println("Ball middle logic Y position: " + ball.position.y);
+            //System.out.println("Ball middle graphic position: " + (double) (ball.ellipse.getY() + ball.ellipse.getHeight()));
+            System.out.println(ball.velocity);
+            System.out.println("\n");
+        }
+        for (Player2 player : new Player2[]{player1, player2}) {
             if (!player.isOnGround(FIELD_HEIGHT+PADDING)) {
                 player.velocity.y += GRAVITY;
             }
@@ -101,7 +113,7 @@ public class Match implements Interactable {
                 ball.velocity.x = Math.min(0, ball.velocity.x + BALL_ATTRITION);
             }
         }
-        for (Player player : new Player[]{player1, player2}) {
+        for (Player2 player : new Player2[]{player1, player2}) {
             if (player.isMoving()) {
                 if (player.velocity.x > 0) {
                     player.velocity.x = Math.max(0, player.velocity.x - ATTRITION);
@@ -114,51 +126,28 @@ public class Match implements Interactable {
 
     void checkCollisions() {
         // Ball and Slime Collision
-        for (Player player : new Player[]{player1, player2}) {
-            if (ball.intersects(player.rectangle)) {
+        for (Player2 player : new Player2[]{player1, player2}) {
+            if (ball.intersects(player)) {
+                System.out.println("Ball hit " + player);
                 handleBallPlayerCollision(player);
             }
         }
-        // Ball and Boundaries Collision
-        // Top boundary
-        if (ball.position.y <= 10) {
-            ball.position.y = 10; // Correct position
-            ball.velocity.y *= -0.9; // Reverse and reduce speed
-        }
-        // Bottom boundary
-        if (ball.position.y + ball.ellipse.getHeight() >= FIELD_HEIGHT - 10) {
-            ball.position.y = FIELD_HEIGHT - ball.ellipse.getHeight() - 10;
-            ball.velocity.y *= -0.9; // Reverse and reduce speed
-        }
-        // Left boundary
-        if (ball.position.x <= 10) {
-            ball.position.x = 10; // Correct position
-            ball.velocity.x *= -0.9; // Reverse and reduce speed
-        }
-        // Right boundary
-        if (ball.position.x + ball.ellipse.getWidth() >= FIELD_WIDTH - 10) {
-            ball.position.x = FIELD_WIDTH - ball.ellipse.getWidth() - 10;
-            ball.velocity.x *= -0.9; // Reverse and reduce speed
-        }
     }
 
-    void handleBallPlayerCollision(Player player) {
-        // Find the center point of the player
-        Vector playerCenter = player.getCenter();
+    void handleBallPlayerCollision(Player2 player) {
+        // Add the player's velocity to the ball's velocity
+        ball.velocity.x = Math.abs(ball.velocity.x) + player.velocity.x;
+        ball.velocity.y = Math.abs(ball.velocity.y) + player.velocity.y;
 
-        // Calculate the collision point's relative position to the player's center
-        double relativeIntersectY = (playerCenter.y - ball.position.y) / ((double) player.rectangle.getHeight() / 2);
+        // Correct the ball's position to prevent it from passing through the player
+        if (ball.velocity.y < 0) { // If the ball is moving upwards after the collision
+            //ball.position.y = player.position.y + player.rectangle.getHeight() + 1; // Adjust ball above the player
+        } else { // If the ball is moving downwards
+            //ball.position.y = player.position.y - ball.ellipse.getHeight() - 1; // Place the ball below the player
+        }
 
-        // Calculate bounce angle
-        double bounceAngle = relativeIntersectY * MAX_BOUNCE_ANGLE;
-
-        // Adjust ball's velocity based on bounce angle
-        ball.velocity.x = (ball.velocity.x > 0 ? -1 : 1) * Math.cos(bounceAngle) * ball.velocity.getMagnitude();
-        ball.velocity.y = -Math.sin(bounceAngle) * ball.velocity.getMagnitude();
-
-        // Ensure the ball's velocity is not zero to avoid stuck situations
-        //if (Math.abs(ball.velocity.x) < 1) {
-        //}
+        // Further refine position adjustment based on the side of collision if necessary
+        // This is a simplified example; you may need to adjust logic based on your game's specifics
     }
 
     public void play() {
@@ -168,9 +157,16 @@ public class Match implements Interactable {
 
             if (!game.isPauseGame()) {
                 // Game Loop Logic Start
+                //ball.ellipse.translate(0,0.98);
+                System.out.println("******* Loop start *******");
+                //System.out.println("Ball middle logic position: " + ball.position);
+                System.out.println("Ball relative graphic position: " + field.getObjectPosition(ball.position));
+                System.out.println("Player2 relative graphic position: " + field.getObjectPosition(player2.position));
+                System.out.println("Ball velocity vector: " + ball.velocity);
+                System.out.println("\n");
 
                 // Physics Update
-                ball.update(FIELD_WIDTH, FIELD_HEIGHT);
+                ball.update(field, new Player2[]{player1, player2});
                 player1.update(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
                 player2.update(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
 
@@ -182,6 +178,13 @@ public class Match implements Interactable {
 
                 // Collision Detection and Response
                 checkCollisions();
+                System.out.println("******* Loop end *******");
+                //System.out.println("Ball middle logic position: " + ball.position);
+                System.out.println("Ball relative graphic position: " + field.getObjectPosition(ball.position));
+                System.out.println("Player2 relative graphic position: " + field.getObjectPosition(player2.position));
+                System.out.println("Ball velocity vector: " + ball.velocity);
+                System.out.println("\n");
+
 
                 // Game Loop Logic End
             }
