@@ -28,4 +28,8 @@ public class Vector {
         double length = Math.sqrt(x * x + y * y);
         return length > 0 ? new Vector(x / length, y / length) : new Vector(0, 0);
     }
+
+    public double getMagnitude() {
+        return Math.sqrt(x * x + y * y);
+    }
 }

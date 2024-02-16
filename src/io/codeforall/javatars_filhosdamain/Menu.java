@@ -24,18 +24,18 @@ public class Menu implements Interactable {
         game.setMenuOpened(true);
         game.setKeyboardListenerEntity(this);
         isVisible = true;
-        background = new Picture(0, 0, "data/sprites/feild.png");
+        background = new Picture(10, 10, "data/sprites/feild.png");
         background.draw();
 
         if(game.isStartGame()) {
             for (int i = 0; i < menuOptions.length; i++) {
-                menuTexts[i] = new Text(350, 250 + (i * 50), menuOptions2[i]);
+                menuTexts[i] = new Text(240, 150 + (i * 50), menuOptions2[i]);
                 menuTexts[i].draw();
             }
         }
         else{
             for (int i = 0; i < menuOptions.length; i++) {
-                menuTexts[i] = new Text(350, 250 + (i * 50), menuOptions[i]);
+                menuTexts[i] = new Text(240, 150 + (i * 50), menuOptions[i]);
                 menuTexts[i].draw();
             }
         }

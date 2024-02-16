@@ -1,39 +1,27 @@
 package io.codeforall.javatars_filhosdamain;
 
+import org.academiadecodigo.simplegraphics.graphics.Canvas;
 import org.academiadecodigo.simplegraphics.graphics.Color;
-import org.academiadecodigo.simplegraphics.graphics.Ellipse;
 import org.academiadecodigo.simplegraphics.graphics.Rectangle;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
 
 
 public class Match implements Interactable {
 
-    private Rectangle rectangle;
-    public static final int canvasHeight = 600;
-    public static final int canvasWidth = 800;
-    //private Slime player = new Slime();
-    private static final int DELAY = 10;
-    Vector gravity = new Vector(0, 9.8); // Gravity vector
-    double timeStep = 0.016; // Simulation time step, assuming 60 FPS
+    public static final int FIELD_HEIGHT = 400;
+    public static final int FIELD_WIDTH = 560;
+    public static final int PADDING = 10;
+    private int frameRate = 60;
+    private int frameTime = 1000 / frameRate;
+    public static final double GRAVITY = 0.98; // Gravity constant
+    public static final double ATTRITION = 0.20; // Attrition constant
+    public static final double BALL_ATTRITION = 0.02; // Attrition constant
+    private static final double MAX_BOUNCE_ANGLE = Math.toRadians(75);
 
-    // Ball attributes
-    Vector ballPosition = new Vector(100, 100); // Initial position
-    Vector ballVelocity = new Vector(0, 0); // Initial velocity
-    Vector ballAcceleration = gravity; // Initial acceleration is just gravity
-
-    Vector slimeVelocity = new Vector(0, 0); // Slime velocity
-    boolean isJumping = false;
-
-    //private CollisionDetector collisionDetector;
-
-    //public Slime getPlayer() {
-        //return player;
-    //}
     private Game game;
-    private Rectangle player1, player2, goal1, goal2;
-    private Ellipse ball;
-    private int paddleSpeed = 10, jumpPower = 20;
-    private double ballSpeedX = 0.0, ballSpeedY = 0.0, jumpSpeed = 0.0;
+    private Player player1, player2;
+    private Rectangle goal1, goal2, field, back;
+    private Ball ball;
     private boolean upPressed = false;
     private boolean aPressed = false;
     private boolean wPressed = false;
@@ -41,30 +29,29 @@ public class Match implements Interactable {
     private boolean dPressed = false;
     private boolean rightPressed = false;
     private boolean pPressed = false;
-    private boolean escPressed = false;
-
-    private int counter = 0;
-    private int maxCounter = 10;
 
     public Match(Game game){
         this.game = game;
     }
 
-
     public void init() {
         System.out.println("Initializing game");
 
-        player1 = new Rectangle(10, canvasHeight - 50, 150, 50);
-        player2 = new Rectangle(650, 550, 150, 50);
-        ball = new Ellipse(390, 290, 20, 20);
-        goal1 = new Rectangle(0, canvasHeight - 100, 50, 100);
-        goal2 = new Rectangle(750, canvasHeight -100, 50, 100);
+        back = new Rectangle(-10, -10, 800, 800);
+        player1 = new Player(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 105, 50);
+        player2 = new Player(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 105, 50);
+        ball = new Ball((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 20);
+        goal1 = new Rectangle(10, FIELD_HEIGHT + PADDING - 115, 70, 115);
+        goal2 = new Rectangle(FIELD_WIDTH -60, FIELD_HEIGHT + PADDING - 115, 70, 115);
+        field = new Rectangle(10, 10, FIELD_WIDTH, FIELD_HEIGHT);
 
-        player1.setColor(Color.RED);
-        player2.setColor(Color.BLUE);
-        ball.setColor(Color.BLACK);
+        back.setColor(Color.YELLOW);
+        player1.rectangle.setColor(Color.RED);
+        player2.rectangle.setColor(Color.BLUE);
+        ball.ellipse.setColor(Color.BLACK);
         goal1.setColor(Color.BLACK);
         goal2.setColor(Color.BLACK);
+        field.setColor(Color.BLACK);
 
         showGame();
 
@@ -76,238 +63,145 @@ public class Match implements Interactable {
         pPressed = false;
         game.setKeyboardListenerEntity(this);
 
-        player1.fill();
-        player2.fill();
-        ball.fill();
+        back.fill();
+        player1.rectangle.fill();
+        player2.rectangle.fill();
+        ball.ellipse.fill();
         goal1.draw();
         goal2.draw();
+        field.draw();
 
     }
 
     private void hideGame(){
-        player1.delete();
-        player2.delete();
-        ball.delete();
+        player1.rectangle.delete();
+        player2.rectangle.delete();
+        ball.ellipse.delete();
+        goal1.delete();
+        goal2.delete();
+        field.delete();
     }
 
-/*    private boolean isColliding(Ellipse ball, Rectangle paddle) {
-
-        return ball.getX() < paddle.getX() + paddle.getWidth() &&
-                ball.getX() + ball.getWidth() > paddle.getX() &&
-                ball.getY() < paddle.getY() + paddle.getHeight() &&
-                ball.getY() + ball.getHeight() > paddle.getY();
-    }
-
-    private boolean isCollidingLeft(Ellipse ball, Rectangle paddle){
-        System.out.println("Colliding Left " + (ball.getX() + ball.getWidth() >= paddle.getX() && ball.getY() + ball.getHeight() >= paddle.getY() && ball.getY() <= paddle.getY() + paddle.getHeight()));
-        return ball.getX() + ball.getWidth() >= paddle.getX() && ball.getY() + ball.getHeight() >= paddle.getY() && ball.getY() <= paddle.getY() + paddle.getHeight();
-    }
-
-    private boolean isCollidingTop(Ellipse ball, Rectangle paddle){
-        System.out.println("Colliding Top " + (ball.getY() + ball.getHeight() >= paddle.getY() && ball.getX() + ball.getWidth() >= paddle.getX() && ball.getX() <= paddle.getX() + paddle.getWidth()));
-        return ball.getY() + ball.getHeight() >= paddle.getY() && ball.getX() + ball.getWidth() >= paddle.getX() && ball.getX() <= paddle.getX() + paddle.getWidth();
-    }
-
-    private boolean isCollidingRight(Ellipse ball, Rectangle paddle){
-        System.out.println("Colliding Right " + (ball.getX() <= paddle.getX() + paddle.getWidth() && ball.getY() + ball.getHeight() >= paddle.getY() && ball.getY() <= paddle.getY() + paddle.getHeight()));
-        return ball.getX() <= paddle.getX() + paddle.getWidth() && ball.getY() + ball.getHeight() >= paddle.getY() && ball.getY() <= paddle.getY() + paddle.getHeight();
-    }
-
-    private boolean isCollidingBottom(Ellipse ball, Rectangle paddle){
-        System.out.println("Colliding Bottom " + (ball.getY() <= paddle.getY() + paddle.getHeight() && ball.getX() + ball.getWidth() >= paddle.getX() && ball.getX() <= paddle.getX() + paddle.getWidth()));
-        return ball.getY() <= paddle.getY() + paddle.getHeight() && ball.getX() + ball.getWidth() >= paddle.getX() && ball.getX() <= paddle.getX() + paddle.getWidth();
-    }*/
-
-    public void updateBall() {
-        // Apply gravity to velocity
-        ballVelocity = ballVelocity.add(ballAcceleration.multiply(timeStep));
-
-        // Update position based on velocity
-        ballPosition = ballPosition.add(ballVelocity.multiply(timeStep));
-
-        if (ballPosition.y >= groundY) {
-            ballPosition.y = groundY; // Reset position to ground level
-            ballVelocity.y *= -1; // Reflect velocity in the Y direction
-            ballVelocity = ballVelocity.multiply(0.9); // Simulate energy loss
+    void applyGravity() {
+        if (!ball.isOnGround(FIELD_HEIGHT+PADDING)) {
+            ball.velocity.y += GRAVITY; // gravity is a constant, e.g., 0.98
         }
-    }
-
-    public void jump() {
-        if (!isJumping) {
-            slimeVelocity.y = -10; // Initial jump speed
-            isJumping = true;
-        }
-    }
-
-    public void updateSlime() {
-        if (isJumping) {
-            // Apply gravity
-            slimeVelocity = slimeVelocity.add(gravity.multiply(timeStep));
-            // Update position
-            slimePosition = slimePosition.add(slimeVelocity.multiply(timeStep));
-            // Check for landing
-            if (slimePosition.y >= groundY) {
-                slimePosition.y = groundY;
-                isJumping = false;
+        for (Player player : new Player[]{player1, player2}) {
+            if (!player.isOnGround(FIELD_HEIGHT+PADDING)) {
+                player.velocity.y += GRAVITY;
             }
         }
     }
 
-    private void updatePaddles() {
-        if (wPressed && player1.getX() > 0) {
-            player1.translate(0, -jumpPower);
+    void applyAttrition() {
+        if (ball.isMoving()) {
+            if (ball.velocity.x > 0) {
+                ball.velocity.x = Math.max(0, ball.velocity.x - BALL_ATTRITION);
+            } else if (ball.velocity.x < 0) {
+                ball.velocity.x = Math.min(0, ball.velocity.x + BALL_ATTRITION);
+            }
         }
-        if (aPressed && player1.getX() > 0) {
-            player1.translate(-paddleSpeed, 0);
-        }
-        if (dPressed && player1.getX() + player1.getWidth() < canvasWidth) {
-            player1.translate( paddleSpeed, 0);
-        }
-        if (upPressed && player2.getX() > 0) {
-            player2.translate(0, -jumpPower);
-        }
-        if (leftPressed && player2.getX()> 0) {
-            player2.translate(-paddleSpeed, 0);
-        }
-        if (rightPressed && player2.getX() + player2.getWidth()< canvasWidth) {
-            player2.translate(paddleSpeed, 0);
+        for (Player player : new Player[]{player1, player2}) {
+            if (player.isMoving()) {
+                if (player.velocity.x > 0) {
+                    player.velocity.x = Math.max(0, player.velocity.x - ATTRITION);
+                } else if (player.velocity.x < 0) {
+                    player.velocity.x = Math.min(0, player.velocity.x + ATTRITION);
+                }
+            }
         }
     }
 
-    private void resetBall() {
-
-        if (ball != null) {
-            ball.delete();
+    void checkCollisions() {
+        // Ball and Slime Collision
+        for (Player player : new Player[]{player1, player2}) {
+            if (ball.intersects(player.rectangle)) {
+                handleBallPlayerCollision(player);
+            }
         }
-
-        int centerX = canvasWidth / 2 - ball.getWidth() / 2;
-        int centerY = canvasHeight / 2 - ball.getHeight() / 2;
-
-        ball = new Ellipse(centerX, centerY, ball.getWidth(), ball.getHeight());
-        ball.setColor(Color.BLACK);
-        ball.fill();
-
-        ballSpeedX = 1.0;
-        ballSpeedY = 1.0;
+        // Ball and Boundaries Collision
+        // Top boundary
+        if (ball.position.y <= 10) {
+            ball.position.y = 10; // Correct position
+            ball.velocity.y *= -0.9; // Reverse and reduce speed
+        }
+        // Bottom boundary
+        if (ball.position.y + ball.ellipse.getHeight() >= FIELD_HEIGHT - 10) {
+            ball.position.y = FIELD_HEIGHT - ball.ellipse.getHeight() - 10;
+            ball.velocity.y *= -0.9; // Reverse and reduce speed
+        }
+        // Left boundary
+        if (ball.position.x <= 10) {
+            ball.position.x = 10; // Correct position
+            ball.velocity.x *= -0.9; // Reverse and reduce speed
+        }
+        // Right boundary
+        if (ball.position.x + ball.ellipse.getWidth() >= FIELD_WIDTH - 10) {
+            ball.position.x = FIELD_WIDTH - ball.ellipse.getWidth() - 10;
+            ball.velocity.x *= -0.9; // Reverse and reduce speed
+        }
     }
 
-    private void increaseBallSpeed() {
+    void handleBallPlayerCollision(Player player) {
+        // Find the center point of the player
+        Vector playerCenter = player.getCenter();
 
-        ballSpeedX += ballSpeedX >= 0 ? 0.1 : 0;
-        ballSpeedY += ballSpeedY >= 0 ? 0.1 : 0;
-        //System.out.println(ballSpeedX);
-        //System.out.println(ballSpeedY);
+        // Calculate the collision point's relative position to the player's center
+        double relativeIntersectY = (playerCenter.y - ball.position.y) / ((double) player.rectangle.getHeight() / 2);
+
+        // Calculate bounce angle
+        double bounceAngle = relativeIntersectY * MAX_BOUNCE_ANGLE;
+
+        // Adjust ball's velocity based on bounce angle
+        ball.velocity.x = (ball.velocity.x > 0 ? -1 : 1) * Math.cos(bounceAngle) * ball.velocity.getMagnitude();
+        ball.velocity.y = -Math.sin(bounceAngle) * ball.velocity.getMagnitude();
+
+        // Ensure the ball's velocity is not zero to avoid stuck situations
+        //if (Math.abs(ball.velocity.x) < 1) {
+        //}
     }
-
-    private void decreaseBallSpeed() {
-
-        ballSpeedX -= ballSpeedX > 0 ? -0.1 : 0;
-        ballSpeedY -= ballSpeedY > 0 ? -0.1 : 0;
-        //System.out.println(ballSpeedX);
-        //System.out.println(ballSpeedY);
-    }
-
-    private void decreaseJumpSpeed() {
-
-        jumpSpeed -= jumpSpeed > 0 ? -0.1 : 0;
-
-    }
-
-
 
     public void play() {
 
-        while (!escPressed) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        while (true) {
+            long startTime = System.currentTimeMillis();
+
             if (!game.isPauseGame()) {
-                if (counter < maxCounter){
-                    counter++;
-                    increaseBallSpeed();
-                }
-                if (ballSpeedX > 0 || ballSpeedY > 0){
-                    decreaseBallSpeed();
-                }
-                if (jumpSpeed > 0){
-                    decreaseJumpSpeed();
-                }
+                // Game Loop Logic Start
 
-                ball.translate(ballSpeedX, 0);
+                // Physics Update
+                ball.update(FIELD_WIDTH, FIELD_HEIGHT);
+                player1.update(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
+                player2.update(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
 
-                if (ball.getY() + ball.getHeight() < canvasHeight){
-                    ball.translate(0,Math.abs(ballSpeedY-gravity));
-                }
+                // Apply gravity if not grounded
+                applyGravity();
 
-                if(player1.getY()+player1.getHeight() < canvasHeight){
-                    player1.translate(0,Math.abs(jumpSpeed-gravity));
-                }
+                // Apply attrition if players moving
+                applyAttrition();
 
-                if(player2.getY()+player2.getHeight() < canvasHeight){
-                    player2.translate(0,Math.abs(jumpSpeed-gravity));
-                }
+                // Collision Detection and Response
+                checkCollisions();
 
-                if (ball.getX() < -ball.getWidth() || ball.getX() > canvasWidth + ball.getWidth()) {
-                    ballSpeedX = -ballSpeedX;
-                    // resetBall();
-                }
-
-                if (ball.getY() <= 0 || ball.getY() + ball.getHeight() >= canvasHeight) {
-                    ballSpeedY = -ballSpeedY;
-                    // increaseBallSpeed();
-                }
-
-                /*if (isColliding(ball, player1) || isColliding(ball, player2)) {
-                    ballSpeedX = -ballSpeedX;
-                    counter = 0;
-                }*/
-
-                if (isCollidingLeft(ball, player2)) {
-                    increaseBallSpeed();
-                    ballSpeedX = -ballSpeedX;
-                }
-
-                if (isCollidingLeft(ball, player1)) {
-                    increaseBallSpeed();
-                    ballSpeedX = -ballSpeedX;
-                }
-
-                if (isCollidingRight(ball, player1)) {
-                    increaseBallSpeed();
-                    ballSpeedX = -ballSpeedX;
-                }
-
-                if (isCollidingRight(ball, player2)) {
-                    increaseBallSpeed();
-                    ballSpeedX = -ballSpeedX;
-                }
-
-                if (isCollidingTop(ball, player1)) {
-                    increaseBallSpeed();
-                    ballSpeedY = -ballSpeedY;
-                }
-
-                if (isCollidingTop(ball, player2)) {
-                    increaseBallSpeed();
-                    ballSpeedY = -ballSpeedY;
-                }
-
-                if (isCollidingBottom(ball, player1)) {
-                    increaseBallSpeed();
-                    ballSpeedY = -ballSpeedY;
-                }
-
-                if (isCollidingBottom(ball, player2)) {
-                    increaseBallSpeed();
-                    ballSpeedY = -ballSpeedY;
-                }
-
+                // Game Loop Logic End
             }
+
             if(game.isPauseGame() && !game.isMenuOpened()){
                 hideGame();
                 game.openMenu();
+            }
+
+            // Delay for next frame
+            long endTime = System.currentTimeMillis();
+            long elapsedTime = endTime - startTime;
+            long sleepTime = frameTime - elapsedTime;
+
+            if (sleepTime > 0) {
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
     }
@@ -316,39 +210,38 @@ public class Match implements Interactable {
     public void setKey(int key, boolean state) {
         if (key == KeyboardEvent.KEY_UP){
             upPressed = true;
-            updatePaddles();
+            player2.jump(FIELD_HEIGHT+PADDING);
             upPressed = false;
         }
         if (key == KeyboardEvent.KEY_LEFT){
             leftPressed = true;
-            updatePaddles();
+            player2.move(-1);
             leftPressed = false;
         }
         if (key == KeyboardEvent.KEY_RIGHT){
             rightPressed = true;
-            updatePaddles();
+            player2.move(1);
             rightPressed = false;
         }
         if (key == KeyboardEvent.KEY_W) {
             wPressed = true;
-            updatePaddles();
+            player1.jump(FIELD_HEIGHT+PADDING);
             wPressed = false;
         }
         if (key == KeyboardEvent.KEY_A){
             aPressed = true;
-            updatePaddles();
+            player1.move(-1);
             aPressed = false;
         }
         if (key == KeyboardEvent.KEY_D){
             dPressed = true;
-            updatePaddles();
+            player1.move(1);
             dPressed = false;
         }
         if (key == KeyboardEvent.KEY_P) {
             game.setPauseGame(true);
         }
         if (key == KeyboardEvent.KEY_ESC) {
-            escPressed = state;
             System.exit(0);
         }
     }

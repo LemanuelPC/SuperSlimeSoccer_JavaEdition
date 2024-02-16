@@ -6,8 +6,8 @@ public class Engine {
 
     public static void main(String[] args) {
 
-        Canvas.limitCanvasHeight(600);
-        Canvas.limitCanvasWidth(800);
+        Canvas.limitCanvasHeight(410);
+        Canvas.limitCanvasWidth(570);
 
         Game game = new Game();
 
