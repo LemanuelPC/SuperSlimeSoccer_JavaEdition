@@ -2,10 +2,12 @@ package io.codeforall.javatars_filhosdamain;
 
 public class Vector {
     public double x, y;
+    public double magnitude;
 
     public Vector(double x, double y) {
         this.x = x;
         this.y = y;
+        this.magnitude = 0.0;
     }
 
     // Vector addition
@@ -29,8 +31,14 @@ public class Vector {
         return length > 0 ? new Vector(x / length, y / length) : new Vector(0, 0);
     }
 
-    public double getMagnitude() {
-        return Math.sqrt(x * x + y * y);
+    public void updateMagnitude() {
+        this.magnitude = Math.sqrt(x * x + y * y);
+    }
+
+    public void updateVector(double x, double y){
+        this.x += x;
+        this.y += y;
+        updateMagnitude();
     }
 
     @Override
@@ -38,6 +46,7 @@ public class Vector {
         return "Vector{" +
                 "x=" + x +
                 ", y=" + y +
+                ", magnitude=" + magnitude +
                 '}';
     }
 }

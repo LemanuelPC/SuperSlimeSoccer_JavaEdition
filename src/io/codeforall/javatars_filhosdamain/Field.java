@@ -15,7 +15,7 @@ public class Field {
         this.height = height;
     }
 
-    public Vector getObjectPosition(Vector absolutePosition) {
+    public Vector getObjectPosition(Position absolutePosition) {
         // Subtract the padding to translate the absolute position into field-relative position
         double relativeX = absolutePosition.x - field.getX();
         double relativeY = absolutePosition.y - field.getY();

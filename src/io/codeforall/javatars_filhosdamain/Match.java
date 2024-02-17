@@ -12,9 +12,9 @@ public class Match implements Interactable {
     public static final int PADDING = 10;
     private int frameRate = 60;
     private int frameTime = 1000 / frameRate;
-    public static final double GRAVITY = 0.98; // Gravity constant
-    public static final double ATTRITION = 0.20; // Attrition constant
-    public static final double BALL_ATTRITION = 0.02; // Attrition constant
+    public static final double GRAVITY = 9.81; // Gravity constant
+    public static final double ATTRITION = 2.0; // Attrition constant
+    public static final double BALL_ATTRITION = 0.2; // Ball Attrition constant
     private static final double MAX_BOUNCE_ANGLE = Math.toRadians(75);
 
     private Game game;
@@ -41,8 +41,8 @@ public class Match implements Interactable {
 
         field = new Field(PADDING, FIELD_WIDTH, FIELD_HEIGHT);
 
-        player1 = new Player2(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 105, 50);
-        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 105, 50);
+        player1 = new Player2(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 100, 50);
+        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 100, 50);
 
         ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 20);
 
@@ -88,67 +88,49 @@ public class Match implements Interactable {
     }
 
     void applyGravity() {
-        if (!ball.isOnGround(field) && !ball.intersects(player1) && !ball.intersects(player2)) {
-            ball.velocity.y += GRAVITY; // gravity is a constant, e.g., 0.98
-        }
-        if (ball.isOnGround(field)) {
-            System.out.println("******* isOnGround == True *******");
-            System.out.println("Ball middle logic Y position: " + ball.position.y);
-            //System.out.println("Ball middle graphic position: " + (double) (ball.ellipse.getY() + ball.ellipse.getHeight()));
-            System.out.println(ball.velocity);
-            System.out.println("\n");
+        if (!ball.isCollidingWithFloor(field)) {
+            ball.movement.velocity.updateVector(0, GRAVITY/60);// gravity is a constant, e.g., 9.81
+            ball.movement.direction = Math.atan2(ball.movement.velocity.y, ball.movement.velocity.x);
         }
         for (Player2 player : new Player2[]{player1, player2}) {
-            if (!player.isOnGround(FIELD_HEIGHT+PADDING)) {
-                player.velocity.y += GRAVITY;
+            if (!player.isOnGround(field.field.getHeight())) {
+                player.movement.velocity.updateVector(0, GRAVITY/60);
+                player.movement.direction = Math.atan2(ball.movement.velocity.y, ball.movement.velocity.x);
             }
         }
     }
 
     void applyAttrition() {
         if (ball.isMoving()) {
-            if (ball.velocity.x > 0) {
-                ball.velocity.x = Math.max(0, ball.velocity.x - BALL_ATTRITION);
-            } else if (ball.velocity.x < 0) {
-                ball.velocity.x = Math.min(0, ball.velocity.x + BALL_ATTRITION);
+            double frictionForceX = (ball.movement.velocity.x / ball.movement.velocity.magnitude) * (BALL_ATTRITION/60);
+            double frictionForceY = (ball.movement.velocity.y / ball.movement.velocity.magnitude) * (BALL_ATTRITION/60);
+            ball.movement.velocity.x -= frictionForceX;
+            ball.movement.velocity.y -= frictionForceY;
+            ball.movement.velocity.updateMagnitude();
+
+            if (ball.movement.velocity.magnitude < 0.01){
+                ball.movement.velocity.x = 0.0;
+                ball.movement.velocity.y = 0.0;
+                ball.movement.velocity.magnitude = 0.0;
             }
         }
         for (Player2 player : new Player2[]{player1, player2}) {
             if (player.isMoving()) {
-                if (player.velocity.x > 0) {
-                    player.velocity.x = Math.max(0, player.velocity.x - ATTRITION);
-                } else if (player.velocity.x < 0) {
-                    player.velocity.x = Math.min(0, player.velocity.x + ATTRITION);
+                double frictionForceX = (player.movement.velocity.x / player.movement.velocity.magnitude) * (ATTRITION/60);
+                double frictionForceY = (player.movement.velocity.y / player.movement.velocity.magnitude) * (ATTRITION/60);
+                player.movement.velocity.x -= frictionForceX;
+                player.movement.velocity.y -= frictionForceY;
+                player.movement.velocity.updateMagnitude();
+
+                if (player.movement.velocity.magnitude < 0.01){
+                    player.movement.velocity.x = 0.0;
+                    player.movement.velocity.y = 0.0;
+                    player.movement.velocity.magnitude = 0.0;
                 }
             }
         }
     }
 
-    void checkCollisions() {
-        // Ball and Slime Collision
-        for (Player2 player : new Player2[]{player1, player2}) {
-            if (ball.intersects(player)) {
-                System.out.println("Ball hit " + player);
-                handleBallPlayerCollision(player);
-            }
-        }
-    }
-
-    void handleBallPlayerCollision(Player2 player) {
-        // Add the player's velocity to the ball's velocity
-        ball.velocity.x = Math.abs(ball.velocity.x) + player.velocity.x;
-        ball.velocity.y = Math.abs(ball.velocity.y) + player.velocity.y;
-
-        // Correct the ball's position to prevent it from passing through the player
-        if (ball.velocity.y < 0) { // If the ball is moving upwards after the collision
-            //ball.position.y = player.position.y + player.rectangle.getHeight() + 1; // Adjust ball above the player
-        } else { // If the ball is moving downwards
-            //ball.position.y = player.position.y - ball.ellipse.getHeight() - 1; // Place the ball below the player
-        }
-
-        // Further refine position adjustment based on the side of collision if necessary
-        // This is a simplified example; you may need to adjust logic based on your game's specifics
-    }
 
     public void play() {
 
@@ -157,18 +139,6 @@ public class Match implements Interactable {
 
             if (!game.isPauseGame()) {
                 // Game Loop Logic Start
-                //ball.ellipse.translate(0,0.98);
-                System.out.println("******* Loop start *******");
-                //System.out.println("Ball middle logic position: " + ball.position);
-                System.out.println("Ball relative graphic position: " + field.getObjectPosition(ball.position));
-                System.out.println("Player2 relative graphic position: " + field.getObjectPosition(player2.position));
-                System.out.println("Ball velocity vector: " + ball.velocity);
-                System.out.println("\n");
-
-                // Physics Update
-                ball.update(field, new Player2[]{player1, player2});
-                player1.update(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
-                player2.update(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
 
                 // Apply gravity if not grounded
                 applyGravity();
@@ -176,15 +146,17 @@ public class Match implements Interactable {
                 // Apply attrition if players moving
                 applyAttrition();
 
-                // Collision Detection and Response
-                checkCollisions();
-                System.out.println("******* Loop end *******");
-                //System.out.println("Ball middle logic position: " + ball.position);
-                System.out.println("Ball relative graphic position: " + field.getObjectPosition(ball.position));
-                System.out.println("Player2 relative graphic position: " + field.getObjectPosition(player2.position));
-                System.out.println("Ball velocity vector: " + ball.velocity);
-                System.out.println("\n");
+                // Update Movement
+                ball.updateLogicalPosition();
+                player1.updateLogicalPosition(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
+                player2.updateLogicalPosition(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
 
+                // Collision Detection and Response
+                ball.checkCollisions(new Player2[]{player1, player2}, field);
+
+                ball.updateGraphicalPosition();
+                player1.updateGraphicalPosition();
+                player2.updateGraphicalPosition();
 
                 // Game Loop Logic End
             }

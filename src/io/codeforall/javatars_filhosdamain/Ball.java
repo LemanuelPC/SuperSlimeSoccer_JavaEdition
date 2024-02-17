@@ -67,6 +67,7 @@ public class Ball{
     public boolean isMoving() {
         return this.velocity.x != 0;
     }
+
 }
 
 
