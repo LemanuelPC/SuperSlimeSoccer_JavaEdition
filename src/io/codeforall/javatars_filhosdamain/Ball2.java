@@ -39,7 +39,7 @@ public class Ball2 {
     }
 
     public boolean isCollidingWithFloor(Field field) {
-        return logicalPosition.y + radius >= field.field.getHeight();
+        return logicalPosition.y + radius >= field.field.getHeight()+10;
     }
 
     public boolean isCollidingWithCeiling(Field field) {
@@ -51,12 +51,12 @@ public class Ball2 {
     }
 
     public boolean isCollidingWithRightWall(Field field) {
-        return logicalPosition.x + radius >= field.field.getWidth();
+        return logicalPosition.x + radius >= field.field.getWidth()+10;
     }
 
     public double distanceToPlayer(Player2 player){
         //Distance between player and ball
-        return Math.sqrt(Math.pow(this.logicalPosition.x + player.logicalPosition.x, 2) + Math.pow(this.logicalPosition.y + player.logicalPosition.y, 2));
+        return Math.sqrt(Math.pow(this.logicalPosition.x - player.logicalPosition.x, 2) + Math.pow(this.logicalPosition.y - player.logicalPosition.y, 2));
     }
 
     public boolean isMoving() {
@@ -66,7 +66,7 @@ public class Ball2 {
     void checkCollisions(Player2[] players, Field field) {
         for (Player2 player : players) {
             if (intersectsPlayer(player)) {
-                movement.direction = Math.atan2(logicalPosition.y - player.logicalPosition.y, logicalPosition.x - player.logicalPosition.x) + Math.PI;
+                movement.direction = Math.atan2(logicalPosition.y - player.logicalPosition.y, logicalPosition.x - player.logicalPosition.x) ;
                 movement.velocity.magnitude += player.movement.velocity.magnitude * 0.8;
                 movement.velocity.x = Math.cos(movement.direction) * movement.velocity.magnitude;
                 movement.velocity.y = Math.sin(movement.direction) * movement.velocity.magnitude;
@@ -75,8 +75,6 @@ public class Ball2 {
                     double correctX = this.logicalPosition.x + Math.cos(this.movement.direction) * ((this.radius + player.height) - distanceToPlayer(player));
                     double correctY = this.logicalPosition.y + Math.sin(this.movement.direction) * ((this.radius + player.height) - distanceToPlayer(player));
 
-                    this.ellipse.translate(correctX - this.logicalPosition.x, correctY - this.logicalPosition.y);
-
                     this.logicalPosition.x = correctX;
                     this.logicalPosition.y = correctY;
                 }
@@ -84,8 +82,8 @@ public class Ball2 {
         }
 
         if(isCollidingWithFloor(field)){
-            if (logicalPosition.y + radius > field.field.getHeight()){
-                double deltaY = Math.abs(logicalPosition.y - (field.field.getHeight() - radius));
+            if (logicalPosition.y + radius > field.field.getHeight()+10){
+                double deltaY = Math.abs(logicalPosition.y - (field.field.getHeight()+10 - radius));
                 double deltaX = deltaY / Math.tan(movement.direction);
                 double correctX;
 
@@ -97,7 +95,7 @@ public class Ball2 {
                     correctX = logicalPosition.x - deltaX;
                 }
 
-                double correctY = field.field.getHeight() - radius; // Position ball just above the bottom
+                double correctY = field.field.getHeight()+10 - radius; // Position ball just above the bottom
 
                 this.logicalPosition.x = correctX;
                 this.logicalPosition.y = correctY;
@@ -106,6 +104,12 @@ public class Ball2 {
             movement.velocity.y = -movement.velocity.y * 0.8;
             movement.velocity.updateMagnitude();
             movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
+
+            if (movement.velocity.magnitude < 0.35){
+                movement.velocity.x = 0.0;
+                movement.velocity.y = 0.0;
+                movement.velocity.magnitude = 0.0;
+            }
         }
 
         if(isCollidingWithCeiling(field)){
@@ -158,8 +162,8 @@ public class Ball2 {
         }
 
         if(isCollidingWithRightWall(field)){
-            if (logicalPosition.x > field.field.getHeight() - radius) {
-                double deltaX = Math.abs(logicalPosition.x - (field.field.getHeight() - radius));
+            if (logicalPosition.x > field.field.getWidth()+10 - radius) {
+                double deltaX = Math.abs(logicalPosition.x - (field.field.getWidth()+10 - radius));
                 double deltaY = deltaX * Math.tan(movement.direction);
                 double correctY;
 

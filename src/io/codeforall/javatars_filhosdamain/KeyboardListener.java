@@ -99,6 +99,12 @@ public class KeyboardListener implements KeyboardHandler {
 
         keyboard.addEventListener(esc);
 
+        KeyboardEvent t = new KeyboardEvent();
+        t.setKeyboardEventType(KeyboardEventType.KEY_PRESSED);
+        t.setKey(KeyboardEvent.KEY_T);
+
+        keyboard.addEventListener(t);
+
 
         //RELEASE IMPLEMENTATION
 

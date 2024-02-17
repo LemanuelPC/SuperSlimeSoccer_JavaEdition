@@ -22,4 +22,13 @@ public class Field {
         return new Vector(relativeX, relativeY);
     }
 
+    @Override
+    public String toString() {
+        return "Field{" +
+                "field=" + field +
+                ", position=" + position +
+                ", width=" + width +
+                ", height=" + height +
+                '}';
+    }
 }

@@ -12,38 +12,31 @@ public class Player2 {
 
     public Player2(double x, double y, double width, double height) {
         this.rectangle = new Rectangle(x, y, width, height);
-        this.logicalPosition = new Position(x + width / 2, height); // Assuming center bottom position
-        this.graphicalPosition = new Position(x + width / 2, height);
+        this.logicalPosition = new Position(x + height, y+height); // Assuming center bottom position
+        this.graphicalPosition = new Position(x + height, y+height);
         this.movement = new Movement(); // Start with no initial movement
         this.width = width;
         this.height = height;
     }
 
-    // Method to update the player's position based on its velocity
-    public void updateLogicalPosition(int CANVAS_WIDTH, int CANVAS_HEIGHT) {
-        // Apply velocity to position
-        double nextX = logicalPosition.x + movement.velocity.x;
-        double nextY = logicalPosition.y + movement.velocity.y;
+    public boolean isCollidingWithFloor(Field field) {
+        return logicalPosition.y >= field.field.getHeight()+10;
+    }
 
-        // Check for left boundary
-        if (nextX < 10 + width / 2) {
-            movement.velocity.x = 0; // Stop horizontal movement
-            nextX = 10 + width / 2; // Adjust position to boundary
-        }
-        // Check for right boundary
-        if (nextX > CANVAS_WIDTH - width / 2) {
-            movement.velocity.x = 0; // Stop horizontal movement
-            nextX = CANVAS_WIDTH - width / 2; // Adjust position
-        }
-        // Check for bottom boundary
-        if (nextY > CANVAS_HEIGHT - logicalPosition.y) { // Consider padding
-            movement.velocity.y = 0; // Stop vertical movement
-            nextY = CANVAS_HEIGHT - logicalPosition.y; // Adjust position
-        }
+    public boolean isCollidingWithLeftWall(Field field) {
+        return logicalPosition.x - height <= field.field.getX();
+    }
 
-        // Update the position
-        logicalPosition.x = nextX;
-        logicalPosition.y = nextY;
+    public boolean isCollidingWithRightWall(Field field) {
+        return logicalPosition.x + height >= field.field.getWidth()+10;
+    }
+
+
+    public void updateLogicalPosition(Field field) {
+
+        this.logicalPosition.x = this.logicalPosition.x + Math.cos(this.movement.direction) * this.movement.velocity.magnitude;
+        this.logicalPosition.y = this.logicalPosition.y + Math.sin(this.movement.direction) * this.movement.velocity.magnitude;
+
     }
 
     public void updateGraphicalPosition() {
@@ -56,23 +49,56 @@ public class Player2 {
         //System.out.println("******");
     }
 
-    public boolean isOnGround(int CANVAS_HEIGHT) {
-        return this.logicalPosition.y >= CANVAS_HEIGHT;
-    }
-
     public boolean isMoving() {
         return this.movement.velocity.x != 0;
     }
 
-    public void jump(int CANVAS_HEIGHT) {
+    public void jump(Field field) {
         // Check if the player is on the ground before allowing a jump
-        if (isOnGround(CANVAS_HEIGHT)) {
+        if (isCollidingWithFloor(field)) {
             movement.velocity.y = -10; // Adjust this value to control the jump strength
+            movement.velocity.updateMagnitude();
+            movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
+        }
+    }
+
+    void checkCollisions(Field field) {
+        if(isCollidingWithFloor(field)){
+            if (logicalPosition.y > field.field.getHeight()+10){
+                this.logicalPosition.y = field.field.getHeight()+10;
+            }
+
+            movement.velocity.y = 0;
+            movement.velocity.updateMagnitude();
+            movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
+
+        }
+
+        if(isCollidingWithLeftWall(field)){
+            if (logicalPosition.x - height < field.field.getX()){
+                this.logicalPosition.x += field.field.getX() - (logicalPosition.x - height);
+            }
+
+            movement.velocity.x = 0;
+            movement.velocity.updateMagnitude();
+            movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
+        }
+
+        if(isCollidingWithRightWall(field)){
+            if (logicalPosition.x > field.field.getHeight()+10 - height) {
+                this.logicalPosition.x -= (logicalPosition.x + height) - field.field.getWidth()-10;
+            }
+
+            movement.velocity.x = 0;
+            movement.velocity.updateMagnitude();
+            movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
         }
     }
 
     public void move(int direction) {
-        movement.velocity.x = 5 * direction; // Multiply by the direction (-1 for left, 1 for right)
+        movement.velocity.x = 3 * direction; // Multiply by the direction (-1 for left, 1 for right)
+        movement.velocity.updateMagnitude();
+        movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
     }
 
     public Position getCenter() {

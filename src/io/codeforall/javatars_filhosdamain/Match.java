@@ -1,5 +1,6 @@
 package io.codeforall.javatars_filhosdamain;
 
+import org.academiadecodigo.simplegraphics.graphics.Canvas;
 import org.academiadecodigo.simplegraphics.graphics.Color;
 import org.academiadecodigo.simplegraphics.graphics.Rectangle;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
@@ -93,7 +94,7 @@ public class Match implements Interactable {
             ball.movement.direction = Math.atan2(ball.movement.velocity.y, ball.movement.velocity.x);
         }
         for (Player2 player : new Player2[]{player1, player2}) {
-            if (!player.isOnGround(field.field.getHeight())) {
+            if (!player.isCollidingWithFloor(field)) {
                 player.movement.velocity.updateVector(0, GRAVITY/60);
                 player.movement.direction = Math.atan2(ball.movement.velocity.y, ball.movement.velocity.x);
             }
@@ -122,7 +123,7 @@ public class Match implements Interactable {
                 player.movement.velocity.y -= frictionForceY;
                 player.movement.velocity.updateMagnitude();
 
-                if (player.movement.velocity.magnitude < 0.01){
+                if (player.movement.velocity.magnitude < 0.35){
                     player.movement.velocity.x = 0.0;
                     player.movement.velocity.y = 0.0;
                     player.movement.velocity.magnitude = 0.0;
@@ -139,7 +140,11 @@ public class Match implements Interactable {
 
             if (!game.isPauseGame()) {
                 // Game Loop Logic Start
-
+                /*System.out.println("Posição logica do player1: " + player1.logicalPosition);
+                System.out.println("Posição grafica do player1: " + player1.graphicalPosition);
+                System.out.println("Movimento do player1: " + player1.movement);
+                System.out.println("******");
+                System.out.println("******");*/
                 // Apply gravity if not grounded
                 applyGravity();
 
@@ -148,11 +153,13 @@ public class Match implements Interactable {
 
                 // Update Movement
                 ball.updateLogicalPosition();
-                player1.updateLogicalPosition(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
-                player2.updateLogicalPosition(FIELD_WIDTH+PADDING, FIELD_HEIGHT+PADDING);
+                player1.updateLogicalPosition(field);
+                player2.updateLogicalPosition(field);
 
                 // Collision Detection and Response
                 ball.checkCollisions(new Player2[]{player1, player2}, field);
+                player1.checkCollisions(field);
+                player2.checkCollisions(field);
 
                 ball.updateGraphicalPosition();
                 player1.updateGraphicalPosition();
@@ -185,7 +192,7 @@ public class Match implements Interactable {
     public void setKey(int key, boolean state) {
         if (key == KeyboardEvent.KEY_UP){
             upPressed = true;
-            player2.jump(FIELD_HEIGHT+PADDING);
+            player2.jump(field);
             upPressed = false;
         }
         if (key == KeyboardEvent.KEY_LEFT){
@@ -200,7 +207,7 @@ public class Match implements Interactable {
         }
         if (key == KeyboardEvent.KEY_W) {
             wPressed = true;
-            player1.jump(FIELD_HEIGHT+PADDING);
+            player1.jump(field);
             wPressed = false;
         }
         if (key == KeyboardEvent.KEY_A){
@@ -218,6 +225,22 @@ public class Match implements Interactable {
         }
         if (key == KeyboardEvent.KEY_ESC) {
             System.exit(0);
+        }
+        if (key == KeyboardEvent.KEY_T) {
+            System.out.println(field);
+            System.out.println("Posição X do field na Canvas: " + field.field.getX());
+            System.out.println("Posição Y do field na Canvas: " + field.field.getY());
+            System.out.println("Posição Ymax do field na Canvas: " + field.field.getHeight());
+            System.out.println("Posição Xmax do field na Canvas: " + field.field.getWidth());
+            System.out.println("******");
+            System.out.println("Posição logica da bola: " + ball.logicalPosition);
+            System.out.println("Posição grafica da bola: " + ball.graphicalPosition);
+            System.out.println("Movimento da bola: " + ball.movement);
+            System.out.println("******");
+            System.out.println("Posição logica do player1: " + player1.logicalPosition);
+            System.out.println("Posição grafica do player1: " + player1.graphicalPosition);
+            System.out.println("Movimento do player1: " + player1.movement);
+            System.out.println(ball.distanceToPlayer(player1));
         }
     }
 
