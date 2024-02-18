@@ -3,8 +3,14 @@ package io.codeforall.javatars_filhosdamain;
 import org.academiadecodigo.simplegraphics.graphics.Canvas;
 import org.academiadecodigo.simplegraphics.graphics.Color;
 import org.academiadecodigo.simplegraphics.graphics.Rectangle;
+import org.academiadecodigo.simplegraphics.graphics.Text;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
 import org.academiadecodigo.simplegraphics.pictures.Picture;
+
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.IOException;
 
 
 public class Match implements Interactable {
@@ -17,7 +23,7 @@ public class Match implements Interactable {
     public static final double GRAVITY = 9.81; // Gravity constant
     public static final double ATTRITION = 2.0; // Attrition constant
     public static final double BALL_ATTRITION = 0.2; // Ball Attrition constant
-    private static final double MAX_BOUNCE_ANGLE = Math.toRadians(75);
+    //private static final double MAX_BOUNCE_ANGLE = Math.toRadians(75);
 
     private Game game;
     private Player2 player1, player2;
@@ -25,6 +31,10 @@ public class Match implements Interactable {
     private Rectangle back;
     private Field field;
     private Ball2 ball;
+    private String bgPath = "data/backgrounds/estadio6.png";
+    private Text p1ScoreText, p2ScoreText;
+    private int p1Score, p2Score;
+
     private boolean upPressed = false;
     private boolean aPressed = false;
     private boolean wPressed = false;
@@ -32,6 +42,10 @@ public class Match implements Interactable {
     private boolean dPressed = false;
     private boolean rightPressed = false;
     private boolean pPressed = false;
+
+    Background background;
+    Thread thread;
+
 
     public Match(Game game){
         this.game = game;
@@ -42,16 +56,16 @@ public class Match implements Interactable {
 
         back = new Rectangle(-10, -10, 800, 800);
 
-        field = new Field(PADDING, FIELD_WIDTH, FIELD_HEIGHT);
+        field = new Field(PADDING, FIELD_WIDTH, FIELD_HEIGHT, bgPath);
 
         //player1 = new Player2(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 100, 50);
         //player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 100, 50);
 
-        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, 56, 28);
-        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 56, 28);
+        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, 56, 28, "data/sprites/spr_slime_classic.png");
+        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 56, 28, "data/sprites/spr_slime_female.png");
         player2.rectangle.grow(-56, 0);
 
-        ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 20);
+        ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 19);
 
         //goal1 = new Rectangle(10, FIELD_HEIGHT + PADDING - 115, 70, 115);
         //goal2 = new Rectangle(FIELD_WIDTH -60, FIELD_HEIGHT + PADDING - 115, 70, 115);
@@ -64,48 +78,91 @@ public class Match implements Interactable {
         goal2Front = new Picture(FIELD_WIDTH -59, FIELD_HEIGHT + PADDING - 114, "data/sprites/spr_goal_front.png");
         goal2Front.grow(-69, 0);
 
+        p1Score = 0;
+        p2Score = 0;
 
-        back.setColor(Color.YELLOW);
+        //p1ScoreText = new Text(FIELD_WIDTH/2,50,p1Score + " : " + p2Score);
+        //p2ScoreText = new Text(500,50,"Score: " + p2Score);
+        //p1ScoreText.setColor(Color.WHITE);
+        //p2ScoreText.setColor(Color.WHITE);
+        //p1ScoreText.grow(70, 70);
+        //p2ScoreText.grow(70, 70);
+
+
+
+        back.setColor(Color.BLACK);
         //player1.rectangle.setColor(Color.RED);
         //player2.rectangle.setColor(Color.BLUE);
-        ball.ellipse.setColor(Color.BLACK);
+        ball.ellipse.setColor(Color.WHITE);
         //goal1.setColor(Color.BLACK);
         //goal2.setColor(Color.BLACK);
         field.field.setColor(Color.BLACK);
 
+        try {
+            background = new Background();
+        } catch (UnsupportedAudioFileException | LineUnavailableException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        thread = new Thread(background);
+
         showGame();
+        runMusic();
 
         play();
 
     }
 
+    public void runMusic(){
+        background.run();
+    }
+
+    public void stopMusic(){
+        background.stopMusic();
+    }
+
+    public void resumeMusic(){
+        background.resumeMusic();
+    }
+
     public void showGame(){
+
+
         pPressed = false;
         game.setKeyboardListenerEntity(this);
 
         back.fill();
         field.field.draw();
+        field.picture.draw();
         //player1.rectangle.fill();
         //player2.rectangle.fill();
         goal1.draw();
         goal2.draw();
         player2.rectangle.draw();
         player1.rectangle.draw();
-        ball.ellipse.fill();
+        //ball.ellipse.fill();
+        ball.picture.draw();
         goal1Front.draw();
         goal2Front.draw();
 
-
-
+        p1ScoreText = new Text(FIELD_WIDTH/2,50,p1Score + " : " + p2Score);
+        p1ScoreText.setColor(Color.WHITE);
+        p1ScoreText.grow(70, 70);
+        p1ScoreText.draw();
+        //p2ScoreText.draw();
+        resumeMusic();
     }
 
     private void hideGame(){
         player1.rectangle.delete();
         player2.rectangle.delete();
-        ball.ellipse.delete();
+        //ball.ellipse.delete();
+        ball.picture.delete();
         goal1.delete();
         goal2.delete();
         field.field.delete();
+        field.picture.delete();
+        p1ScoreText.delete();
+        stopMusic();
     }
 
     void applyGravity() {
@@ -153,17 +210,23 @@ public class Match implements Interactable {
     }
 
     public void checkGoal(Picture[] goals){
-            if(ball.isGoalLeft(goal1) || ball.isGoalRight(goal2)){
-                resetGame();
-                //System.out.println("Goal");
-            }
+        if(ball.isGoalLeft(goal1)){
+            p2Score++;
+            resetGame();
+            //System.out.println("Goal");
+        }
+        if(ball.isGoalRight(goal2)){
+            p1Score++;
+            resetGame();
+            //System.out.println("Goal");
+        }
     }
 
     public void resetGame(){
         hideGame();
-        ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 20);
-        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, 56, 28);
-        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 56, 28);
+        ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 19);
+        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, 56, 28, "data/sprites/spr_slime_classic.png");
+        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 56, 28, "data/sprites/spr_slime_female.png");
         player2.rectangle.grow(-56, 0);
         showGame();
     }

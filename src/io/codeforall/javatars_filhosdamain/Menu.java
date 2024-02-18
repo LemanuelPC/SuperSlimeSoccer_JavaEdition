@@ -24,18 +24,20 @@ public class Menu implements Interactable {
         game.setMenuOpened(true);
         game.setKeyboardListenerEntity(this);
         isVisible = true;
-        background = new Picture(10, 10, "data/sprites/feild.png");
+        background = new Picture(10, 10, "data/mainscreen.jpeg");
         background.draw();
 
         if(game.isStartGame()) {
             for (int i = 0; i < menuOptions.length; i++) {
-                menuTexts[i] = new Text(240, 150 + (i * 50), menuOptions2[i]);
+                menuTexts[i] = new Text(290, 120 + (i * 80), menuOptions2[i]);
+                menuTexts[i].grow(50,25);
                 menuTexts[i].draw();
             }
         }
         else{
             for (int i = 0; i < menuOptions.length; i++) {
-                menuTexts[i] = new Text(240, 150 + (i * 50), menuOptions[i]);
+                menuTexts[i] = new Text(290, 120 + (i * 80), menuOptions[i]);
+                menuTexts[i].grow(50,25);
                 menuTexts[i].draw();
             }
         }
@@ -56,7 +58,7 @@ public class Menu implements Interactable {
 
     public void updateMenuDisplay() {
         for (int i = 0; i < menuTexts.length; i++) {
-            menuTexts[i].setColor(i == currentOption ? Color.RED : Color.BLACK);
+            menuTexts[i].setColor(i == currentOption ? Color.RED : Color.BLUE);
         }
     }
 

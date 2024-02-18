@@ -5,6 +5,7 @@ import org.academiadecodigo.simplegraphics.pictures.Picture;
 
 public class Ball2 {
     Ellipse ellipse;
+    Picture picture;
     Position logicalPosition;
     Position graphicalPosition;
     Movement movement;
@@ -16,6 +17,7 @@ public class Ball2 {
         this.diameter = diameter;
         this.radius = diameter/2;
         this.ellipse = new Ellipse(xTopLeftCorner, yTopLeftCorner, diameter, diameter);
+        this.picture = new Picture(xTopLeftCorner, yTopLeftCorner, "data/sprites/spr_ball.png");
         this.logicalPosition = new Position(xTopLeftCorner + radius, yTopLeftCorner + radius);
         this.graphicalPosition = new Position(xTopLeftCorner + radius, yTopLeftCorner + radius);
         this.movement = new Movement();
@@ -232,6 +234,7 @@ public class Ball2 {
         //System.out.println("Graphical Position: " + graphicalPosition);
         //System.out.println("\n");
         this.ellipse.translate(this.logicalPosition.x - this.graphicalPosition.x, this.logicalPosition.y - this.graphicalPosition.y);
+        this.picture.translate(this.logicalPosition.x - this.graphicalPosition.x, this.logicalPosition.y - this.graphicalPosition.y);
         this.graphicalPosition.x = this.logicalPosition.x;
         this.graphicalPosition.y = this.logicalPosition.y;
     }

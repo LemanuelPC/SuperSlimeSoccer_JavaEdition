@@ -12,9 +12,9 @@ public class Player2 {
     double width;
     double height;
 
-    public Player2(double x, double y, double width, double height) {
+    public Player2(double x, double y, double width, double height, String path) {
         //this.rectangle = new Rectangle(x, y, width, height);
-        this.rectangle = new Picture(x, y, "data/sprites/spr_slime_classic.png");
+        this.rectangle = new Picture(x, y, path);
         this.logicalPosition = new Position(x + height, y+height); // Assuming center bottom position
         this.graphicalPosition = new Position(x + height, y+height);
         this.movement = new Movement(); // Start with no initial movement
