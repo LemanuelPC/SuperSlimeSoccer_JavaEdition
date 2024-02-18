@@ -96,7 +96,7 @@ public class Match implements Interactable {
         for (Player2 player : new Player2[]{player1, player2}) {
             if (!player.isCollidingWithFloor(field)) {
                 player.movement.velocity.updateVector(0, GRAVITY/60);
-                player.movement.direction = Math.atan2(ball.movement.velocity.y, ball.movement.velocity.x);
+                player.movement.direction = Math.atan2(player.movement.velocity.y, player.movement.velocity.x);
             }
         }
     }

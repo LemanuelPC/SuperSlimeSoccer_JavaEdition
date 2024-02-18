@@ -56,7 +56,7 @@ public class Player2 {
     public void jump(Field field) {
         // Check if the player is on the ground before allowing a jump
         if (isCollidingWithFloor(field)) {
-            movement.velocity.y = -10; // Adjust this value to control the jump strength
+            movement.velocity.y = -7; // Adjust this value to control the jump strength
             movement.velocity.updateMagnitude();
             movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
         }

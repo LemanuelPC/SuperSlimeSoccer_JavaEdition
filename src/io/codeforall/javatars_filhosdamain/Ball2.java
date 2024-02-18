@@ -35,7 +35,7 @@ public class Ball2 {
 
     public boolean intersectsPlayer(Player2 player) {
         // If the distance is less or equal to the sum of their radius, they intersect
-        return distanceToPlayer(player) <= this.radius + player.height;
+        return distanceToPlayer(player) <= this.radius + player.height && player.logicalPosition.y > logicalPosition.y + radius;
     }
 
     public boolean isCollidingWithFloor(Field field) {
@@ -66,12 +66,14 @@ public class Ball2 {
     void checkCollisions(Player2[] players, Field field) {
         for (Player2 player : players) {
             if (intersectsPlayer(player)) {
+                
                 movement.direction = Math.atan2(logicalPosition.y - player.logicalPosition.y, logicalPosition.x - player.logicalPosition.x) ;
                 movement.velocity.magnitude += player.movement.velocity.magnitude * 0.8;
                 movement.velocity.x = Math.cos(movement.direction) * movement.velocity.magnitude;
                 movement.velocity.y = Math.sin(movement.direction) * movement.velocity.magnitude;
 
                 if (distanceToPlayer(player) < this.radius + player.height) {
+
                     double correctX = this.logicalPosition.x + Math.cos(this.movement.direction) * ((this.radius + player.height) - distanceToPlayer(player));
                     double correctY = this.logicalPosition.y + Math.sin(this.movement.direction) * ((this.radius + player.height) - distanceToPlayer(player));
 
@@ -139,7 +141,7 @@ public class Ball2 {
 
         if(isCollidingWithLeftWall(field)){
             if (logicalPosition.x - radius < field.field.getX()){
-                double correctX = radius;
+                double correctX = radius+10;
                 double deltaX = Math.abs(logicalPosition.x - correctX);
                 double deltaY = deltaX * Math.tan(movement.direction);
                 double correctY;
@@ -175,7 +177,7 @@ public class Ball2 {
                     correctY = logicalPosition.y - deltaY;
                 }
 
-                this.logicalPosition.x = field.field.getHeight() - radius;
+                this.logicalPosition.x = field.field.getWidth() - radius;
                 this.logicalPosition.y = correctY;
             }
 

@@ -39,6 +39,7 @@ public class Vector {
         this.x += x;
         this.y += y;
         updateMagnitude();
+
     }
 
     @Override
