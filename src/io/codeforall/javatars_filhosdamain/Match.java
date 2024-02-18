@@ -4,6 +4,7 @@ import org.academiadecodigo.simplegraphics.graphics.Canvas;
 import org.academiadecodigo.simplegraphics.graphics.Color;
 import org.academiadecodigo.simplegraphics.graphics.Rectangle;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
+import org.academiadecodigo.simplegraphics.pictures.Picture;
 
 
 public class Match implements Interactable {
@@ -20,7 +21,8 @@ public class Match implements Interactable {
 
     private Game game;
     private Player2 player1, player2;
-    private Rectangle goal1, goal2, back;
+    private Picture goal1, goal2, goal1Front, goal2Front;
+    private Rectangle back;
     private Field field;
     private Ball2 ball;
     private boolean upPressed = false;
@@ -42,21 +44,33 @@ public class Match implements Interactable {
 
         field = new Field(PADDING, FIELD_WIDTH, FIELD_HEIGHT);
 
-        player1 = new Player2(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 100, 50);
-        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 100, 50);
+        //player1 = new Player2(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 100, 50);
+        //player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 100, 50);
+
+        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, 56, 28);
+        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 56, 28);
+        player2.rectangle.grow(-56, 0);
 
         ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 20);
 
-        goal1 = new Rectangle(10, FIELD_HEIGHT + PADDING - 115, 70, 115);
-        goal2 = new Rectangle(FIELD_WIDTH -60, FIELD_HEIGHT + PADDING - 115, 70, 115);
+        //goal1 = new Rectangle(10, FIELD_HEIGHT + PADDING - 115, 70, 115);
+        //goal2 = new Rectangle(FIELD_WIDTH -60, FIELD_HEIGHT + PADDING - 115, 70, 115);
+
+        goal1 = new Picture(10, FIELD_HEIGHT + PADDING - 115, "data/sprites/spr_goal.png");
+        goal2 = new Picture(FIELD_WIDTH -60, FIELD_HEIGHT + PADDING - 115, "data/sprites/spr_goal.png");
+        goal2.grow(-70, 0);
+
+        goal1Front = new Picture(10, FIELD_HEIGHT + PADDING - 114, "data/sprites/spr_goal_front.png");
+        goal2Front = new Picture(FIELD_WIDTH -59, FIELD_HEIGHT + PADDING - 114, "data/sprites/spr_goal_front.png");
+        goal2Front.grow(-69, 0);
 
 
         back.setColor(Color.YELLOW);
-        player1.rectangle.setColor(Color.RED);
-        player2.rectangle.setColor(Color.BLUE);
+        //player1.rectangle.setColor(Color.RED);
+        //player2.rectangle.setColor(Color.BLUE);
         ball.ellipse.setColor(Color.BLACK);
-        goal1.setColor(Color.BLACK);
-        goal2.setColor(Color.BLACK);
+        //goal1.setColor(Color.BLACK);
+        //goal2.setColor(Color.BLACK);
         field.field.setColor(Color.BLACK);
 
         showGame();
@@ -70,12 +84,18 @@ public class Match implements Interactable {
         game.setKeyboardListenerEntity(this);
 
         back.fill();
-        player1.rectangle.fill();
-        player2.rectangle.fill();
-        ball.ellipse.fill();
+        field.field.draw();
+        //player1.rectangle.fill();
+        //player2.rectangle.fill();
         goal1.draw();
         goal2.draw();
-        field.field.draw();
+        player2.rectangle.draw();
+        player1.rectangle.draw();
+        ball.ellipse.fill();
+        goal1Front.draw();
+        goal2Front.draw();
+
+
 
     }
 
@@ -132,6 +152,22 @@ public class Match implements Interactable {
         }
     }
 
+    public void checkGoal(Picture[] goals){
+            if(ball.isGoalLeft(goal1) || ball.isGoalRight(goal2)){
+                resetGame();
+                //System.out.println("Goal");
+            }
+    }
+
+    public void resetGame(){
+        hideGame();
+        ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 20);
+        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, 56, 28);
+        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 56, 28);
+        player2.rectangle.grow(-56, 0);
+        showGame();
+    }
+
 
     public void play() {
 
@@ -140,30 +176,39 @@ public class Match implements Interactable {
 
             if (!game.isPauseGame()) {
                 // Game Loop Logic Start
+
                 /*System.out.println("Posição logica do player1: " + player1.logicalPosition);
                 System.out.println("Posição grafica do player1: " + player1.graphicalPosition);
                 System.out.println("Movimento do player1: " + player1.movement);
                 System.out.println("******");
                 System.out.println("******");*/
+                //System.out.println("Movimento da bola: " + ball.movement);
+
                 // Apply gravity if not grounded
                 applyGravity();
 
                 // Apply attrition if players moving
                 applyAttrition();
 
-                // Update Movement
+                // Update Logical Position
                 ball.updateLogicalPosition();
                 player1.updateLogicalPosition(field);
                 player2.updateLogicalPosition(field);
+                //System.out.println("Movimento da bola: " + ball.movement);
 
                 // Collision Detection and Response
-                ball.checkCollisions(new Player2[]{player1, player2}, field);
+                ball.checkCollisions(new Player2[]{player1, player2}, field, new Picture[]{goal1, goal2});
                 player1.checkCollisions(field);
                 player2.checkCollisions(field);
 
+                //Update Graphical Position
                 ball.updateGraphicalPosition();
                 player1.updateGraphicalPosition();
                 player2.updateGraphicalPosition();
+
+                // Check goal
+                checkGoal(new Picture[]{goal1, goal2});
+
 
                 // Game Loop Logic End
             }
@@ -237,10 +282,27 @@ public class Match implements Interactable {
             System.out.println("Posição grafica da bola: " + ball.graphicalPosition);
             System.out.println("Movimento da bola: " + ball.movement);
             System.out.println("******");
-            System.out.println("Posição logica do player1: " + player1.logicalPosition);
-            System.out.println("Posição grafica do player1: " + player1.graphicalPosition);
-            System.out.println("Movimento do player1: " + player1.movement);
-            System.out.println(ball.distanceToPlayer(player1));
+            //System.out.println("Posição logica do player1: " + player1.logicalPosition);
+            //System.out.println("Posição grafica do player1: " + player1.graphicalPosition);
+            //System.out.println("Movimento do player1: " + player1.movement);
+            //System.out.println(ball.distanceToPlayer(player1));
+            //System.out.println("Player Height: " + player1.rectangle.getHeight());
+            //System.out.println("Player Width: " + player1.rectangle.getWidth());
+            System.out.println("Goal1 Y: " + goal1.getY());
+            System.out.println("Goal1 X: " + goal1.getX());
+            System.out.println("Goal1 MaxY: " + goal1.getMaxY());
+            System.out.println("Goal1 MaxX: " + goal1.getMaxX());
+            System.out.println("Goal2 Y: " + goal2.getY());
+            System.out.println("Goal2 X: " + goal2.getX());
+            System.out.println("Goal2 MaxY: " + goal2.getMaxY());
+            System.out.println("Goal2 MaxX: " + goal2.getMaxX());
+            System.out.println("Is Below Goal1 Top Bar: " + (ball.movement.velocity.y > 0 && ball.logicalPosition.y + ball.radius >= goal1.getY()));
+            System.out.println("Is Below Goal2 Top Bar: " + (ball.movement.velocity.y > 0 && ball.logicalPosition.y + ball.radius >= goal2.getY()));
+            System.out.println("isWithinHorizontalSpan G1: " + (ball.logicalPosition.x - ball.radius <= goal1.getMaxX()));
+            System.out.println("isWithinHorizontalSpan G2: " + (ball.logicalPosition.x + ball.radius >= goal2.getMaxX()));
+            System.out.println("distanceToGoal1Edge :" + (Math.sqrt(Math.pow(ball.logicalPosition.x - goal1.getMaxX(), 2) + Math.pow(ball.logicalPosition.y - goal1.getY(), 2))));
+            System.out.println("distanceToGoal2Edge :" + (Math.sqrt(Math.pow(ball.logicalPosition.x - goal2.getMaxX(), 2) + Math.pow(ball.logicalPosition.y - goal2.getY(), 2))));
+            System.out.println("\n");
         }
     }
 

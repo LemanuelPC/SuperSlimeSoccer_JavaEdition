@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<project name="SlimeBall Showdown" default="jarfile">
+
+    <target name="init" description="Initializes properties">
+        <property name="project.name" value="SlimeBall Showdown"/>
+        <property name="src.dir" value="src"/>
+        <property name="main.class" value="io.codeforall.javatars_filhosdamain.Engine"/>
+        <property name="build.dir" value="build"/>
+        <property name="classes.dir" value="${build.dir}/classes"/>
+        <property name="lib.dir" value="lib" />
+        <property name="data.dir" value="data" />
+        <property name="backgrounds.dir" value="${data.dir}/backgrounds" />
+        <property name="sprites.dir" value="${data.dir}/sprites" />
+        <path id="classpath">
+            <fileset dir="${lib.dir}" includes="**/*.jar" />
+        </path>
+    </target>
+
+    <target name="clean" description="Cleans up the entire project" depends="init">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="prepare" description="Creates the build and classes directory" depends="init">
+        <mkdir dir="${classes.dir}"/>
+    </target>
+
+    <target name="compile" description="Compiles the source code" depends="prepare">
+        <javac srcdir="${src.dir}" destdir="${classes.dir}">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <target name="jarfile" description="Creates the executable and archives the source code" depends="compile">
+        <jar destfile="${build.dir}/${project.name}-0.5.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Class-Path" value="${lib.dir}" />
+            </manifest>
+            <zipgroupfileset dir="${lib.dir}" includes="*.jar"/>
+            <zipgroupfileset dir="${data.dir}" includes="*+/*"/>
+            <zipgroupfileset dir="${sprites.dir}" includes="**/*"/>
+        </jar>
+    </target>
+
+</project>

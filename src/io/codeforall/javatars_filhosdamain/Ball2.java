@@ -1,6 +1,7 @@
 package io.codeforall.javatars_filhosdamain;
 
 import org.academiadecodigo.simplegraphics.graphics.Ellipse;
+import org.academiadecodigo.simplegraphics.pictures.Picture;
 
 public class Ball2 {
     Ellipse ellipse;
@@ -9,6 +10,7 @@ public class Ball2 {
     Movement movement;
     double diameter;
     double radius;
+    final double ATTENUATION = 0.5;
 
     public Ball2(double xTopLeftCorner, double yTopLeftCorner, double diameter) {
         this.diameter = diameter;
@@ -54,6 +56,18 @@ public class Ball2 {
         return logicalPosition.x + radius >= field.field.getWidth()+10;
     }
 
+    boolean isCollidingWithTopBar(Picture goal) {
+        boolean isBelowTopBar = movement.velocity.y > 0 && logicalPosition.y + radius >= goal.getY() && logicalPosition.y + radius <= goal.getY() + 15;
+        boolean isWithinHorizontalSpan = goal.getMaxX() == 80 ? logicalPosition.x - radius <= goal.getMaxX() : logicalPosition.x + radius >= goal.getMaxX();
+        return isBelowTopBar && isWithinHorizontalSpan;
+    }
+
+    boolean shouldAdjustXVelocity(Picture goal) {
+        double distanceToGoalEdge = Math.sqrt(Math.pow(this.logicalPosition.x - goal.getMaxX(), 2) + Math.pow(this.logicalPosition.y - (goal.getY()+5), 2));
+
+        return distanceToGoalEdge <= this.radius;
+    }
+
     public double distanceToPlayer(Player2 player){
         //Distance between player and ball
         return Math.sqrt(Math.pow(this.logicalPosition.x - player.logicalPosition.x, 2) + Math.pow(this.logicalPosition.y - player.logicalPosition.y, 2));
@@ -63,12 +77,12 @@ public class Ball2 {
         return this.movement.velocity.magnitude != 0;
     }
 
-    void checkCollisions(Player2[] players, Field field) {
+    void checkCollisions(Player2[] players, Field field, Picture[] goals) {
         for (Player2 player : players) {
             if (intersectsPlayer(player)) {
                 
                 movement.direction = Math.atan2(logicalPosition.y - player.logicalPosition.y, logicalPosition.x - player.logicalPosition.x) ;
-                movement.velocity.magnitude += player.movement.velocity.magnitude * 0.8;
+                movement.velocity.magnitude += player.movement.velocity.magnitude * ATTENUATION;
                 movement.velocity.x = Math.cos(movement.direction) * movement.velocity.magnitude;
                 movement.velocity.y = Math.sin(movement.direction) * movement.velocity.magnitude;
 
@@ -107,16 +121,16 @@ public class Ball2 {
             movement.velocity.updateMagnitude();
             movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
 
-            if (movement.velocity.magnitude < 0.35){
+          /*  if (movement.velocity.magnitude < 0.35){
                 movement.velocity.x = 0.0;
                 movement.velocity.y = 0.0;
                 movement.velocity.magnitude = 0.0;
-            }
+            }*/
         }
 
         if(isCollidingWithCeiling(field)){
             if (logicalPosition.y < radius) {
-                double deltaY = Math.abs(logicalPosition.y - radius);
+                double deltaY = logicalPosition.y;
                 double deltaX = deltaY / Math.tan(movement.direction);
                 double correctX;
 
@@ -134,7 +148,7 @@ public class Ball2 {
                 this.logicalPosition.y = correctY;
             }
 
-            movement.velocity.y = -movement.velocity.y * 0.8;
+            movement.velocity.y = -movement.velocity.y * 0.9;
             movement.velocity.updateMagnitude();
             movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
         }
@@ -158,7 +172,7 @@ public class Ball2 {
                 this.logicalPosition.y = correctY;
             }
 
-            movement.velocity.x = -movement.velocity.x * 0.8;
+            movement.velocity.x = -movement.velocity.x * 0.6;
             movement.velocity.updateMagnitude();
             movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
         }
@@ -181,10 +195,36 @@ public class Ball2 {
                 this.logicalPosition.y = correctY;
             }
 
-            movement.velocity.x = -movement.velocity.x * 0.8;
+            movement.velocity.x = -movement.velocity.x * 0.6;
             movement.velocity.updateMagnitude();
             movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
         }
+
+        for (Picture goal : goals) {
+            if (isCollidingWithTopBar(goal)) {
+                // Adjust velocity for realistic bounce off the top bar
+                movement.velocity.y = -movement.velocity.y * 1.1; // Reflect and attenuate Y velocity
+
+                // Update magnitude and direction based on the new velocity
+                movement.velocity.updateMagnitude();
+                movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
+                break;
+            }
+            if (shouldAdjustXVelocity(goal)) {
+                movement.velocity.y = -movement.velocity.y * 1.1; // Reflect and attenuate Y velocity
+                movement.velocity.x *= -ATTENUATION; // Reflect and attenuate X velocity for edge collisions
+                movement.velocity.updateMagnitude();
+                movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
+                break;
+            }
+        }
+    }
+
+    public boolean isGoalLeft(Picture goal){
+        return graphicalPosition.y-radius > goal.getY() && graphicalPosition.x+radius < goal.getMaxX()-35;
+    }
+    public boolean isGoalRight(Picture goal){
+        return graphicalPosition.y-radius > goal.getY() && graphicalPosition.x-radius > goal.getMaxX()+35;
     }
 
     public void updateGraphicalPosition(){

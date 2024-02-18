@@ -1,9 +1,11 @@
 package io.codeforall.javatars_filhosdamain;
 
 import org.academiadecodigo.simplegraphics.graphics.Rectangle;
+import org.academiadecodigo.simplegraphics.pictures.Picture;
 
 public class Player2 {
-    Rectangle rectangle;
+    //Rectangle rectangle;
+    Picture rectangle;
     Position logicalPosition;
     Position graphicalPosition;
     Movement movement;
@@ -11,7 +13,8 @@ public class Player2 {
     double height;
 
     public Player2(double x, double y, double width, double height) {
-        this.rectangle = new Rectangle(x, y, width, height);
+        //this.rectangle = new Rectangle(x, y, width, height);
+        this.rectangle = new Picture(x, y, "data/sprites/spr_slime_classic.png");
         this.logicalPosition = new Position(x + height, y+height); // Assuming center bottom position
         this.graphicalPosition = new Position(x + height, y+height);
         this.movement = new Movement(); // Start with no initial movement
@@ -56,7 +59,7 @@ public class Player2 {
     public void jump(Field field) {
         // Check if the player is on the ground before allowing a jump
         if (isCollidingWithFloor(field)) {
-            movement.velocity.y = -7; // Adjust this value to control the jump strength
+            movement.velocity.y = -5; // Adjust this value to control the jump strength
             movement.velocity.updateMagnitude();
             movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
         }
@@ -99,6 +102,14 @@ public class Player2 {
         movement.velocity.x = 3 * direction; // Multiply by the direction (-1 for left, 1 for right)
         movement.velocity.updateMagnitude();
         movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
+
+        if(rectangle.getWidth() > 0 && direction == -1){
+            rectangle.grow(-56, 0);
+        }
+        if(rectangle.getWidth() < 0 && direction == 1){
+            rectangle.grow(56, 0);
+        }
+
     }
 
     public Position getCenter() {
