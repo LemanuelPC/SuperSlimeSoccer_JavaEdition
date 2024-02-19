@@ -8,7 +8,7 @@ import org.academiadecodigo.simplegraphics.pictures.Picture;
 public class Menu implements Interactable {
 
     private Picture background;
-    private boolean isVisible;
+    boolean isVisible;
     private Text pressSpaceText;
     private int currentOption = 0;
     private final String[] menuOptions = {"Start Game", "Config", "Exit Game"};
@@ -21,7 +21,7 @@ public class Menu implements Interactable {
     }
 
     public void display() {
-        game.setMenuOpened(true);
+        System.out.println("Menu opened");
         game.setKeyboardListenerEntity(this);
         isVisible = true;
         background = new Picture(10, 10, "data/mainscreen.jpeg");
@@ -53,7 +53,7 @@ public class Menu implements Interactable {
         background.delete();
         isVisible = false;
         System.out.println("menu visible: " + isVisible);
-        game.setMenuOpened(false);
+        game.setMenuOpen(false);
     }
 
     public void updateMenuDisplay() {
@@ -87,11 +87,13 @@ public class Menu implements Interactable {
                     game.resumeGame();
                     break;
                 }
+                clearDisplay();
                 game.setStartGame();
                 break;
             case 1:
                 // Open configuration settings
-                //openConfig();
+                clearDisplay();
+                game.setConfigOpen(true);
                 break;
             case 2:
                 // Exit the game

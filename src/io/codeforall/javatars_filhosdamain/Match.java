@@ -1,13 +1,11 @@
 package io.codeforall.javatars_filhosdamain;
 
-import org.academiadecodigo.simplegraphics.graphics.Canvas;
 import org.academiadecodigo.simplegraphics.graphics.Color;
 import org.academiadecodigo.simplegraphics.graphics.Rectangle;
 import org.academiadecodigo.simplegraphics.graphics.Text;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
 import org.academiadecodigo.simplegraphics.pictures.Picture;
 
-import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
@@ -276,7 +274,7 @@ public class Match implements Interactable {
                 // Game Loop Logic End
             }
 
-            if(game.isPauseGame() && !game.isMenuOpened()){
+            if(game.isPauseGame() && !game.isMenuOpen()){
                 hideGame();
                 game.openMenu();
             }
