@@ -6,13 +6,15 @@ import org.academiadecodigo.simplegraphics.graphics.Text;
 import org.academiadecodigo.simplegraphics.keyboard.KeyboardEvent;
 import org.academiadecodigo.simplegraphics.pictures.Picture;
 
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.IOException;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 
 public class Match implements Interactable {
 
+    boolean initiated;
+    boolean isPaused;
     public static final int FIELD_HEIGHT = 400;
     public static final int FIELD_WIDTH = 560;
     public static final int PADDING = 10;
@@ -21,7 +23,6 @@ public class Match implements Interactable {
     public static final double GRAVITY = 9.81; // Gravity constant
     public static final double ATTRITION = 2.0; // Attrition constant
     public static final double BALL_ATTRITION = 0.2; // Ball Attrition constant
-    //private static final double MAX_BOUNCE_ANGLE = Math.toRadians(75);
 
     private Game game;
     private Player2 player1, player2;
@@ -29,9 +30,10 @@ public class Match implements Interactable {
     private Rectangle back;
     private Field field;
     private Ball2 ball;
-    private String bgPath = "data/backgrounds/estadio6.png";
-    private Text p1ScoreText, p2ScoreText;
+    private String bgPath, character1, character2;
+    private Text scoreText, timeRemainingText;
     private int p1Score, p2Score;
+    int timeLimit, goalLimit, timeRemaining;
 
     private boolean upPressed = false;
     private boolean aPressed = false;
@@ -40,17 +42,27 @@ public class Match implements Interactable {
     private boolean dPressed = false;
     private boolean rightPressed = false;
     private boolean pPressed = false;
+    Timer timer;
 
-    Background background;
+    Sounds matchMusic, hittingGoalSound, goalSound;
     Thread thread;
 
 
-    public Match(Game game){
+    public Match(Game game, int timeLimit, int goalLimit, String backgroundChoice, String characterP1, String characterP2, Sounds matchMusic, Sounds hittingGoalSound, Sounds goalSound){
         this.game = game;
+        this.bgPath = backgroundChoice;
+        this.timeLimit = timeLimit;
+        this.goalLimit = goalLimit;
+        this.timeRemaining = timeLimit*60;
+        this.character1 = characterP1;
+        this.character2 = characterP2;
+        this.matchMusic = matchMusic;
+        this.hittingGoalSound = hittingGoalSound;
+        this.goalSound = goalSound;
     }
 
     public void init() {
-        System.out.println("Initializing game");
+        //System.out.println("Initializing game");
 
         back = new Rectangle(-10, -10, 800, 800);
 
@@ -59,9 +71,9 @@ public class Match implements Interactable {
         //player1 = new Player2(PADDING + 20, FIELD_HEIGHT + PADDING - 50, 100, 50);
         //player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 100, 50);
 
-        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, 56, 28, "data/sprites/spr_slime_classic.png");
-        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 56, 28, "data/sprites/spr_slime_female.png");
-        player2.rectangle.grow(-56, 0);
+        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, character1);
+        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, character2);
+        player2.rectangle.grow(-player2.width, 0);
 
         ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 19);
 
@@ -79,15 +91,6 @@ public class Match implements Interactable {
         p1Score = 0;
         p2Score = 0;
 
-        //p1ScoreText = new Text(FIELD_WIDTH/2,50,p1Score + " : " + p2Score);
-        //p2ScoreText = new Text(500,50,"Score: " + p2Score);
-        //p1ScoreText.setColor(Color.WHITE);
-        //p2ScoreText.setColor(Color.WHITE);
-        //p1ScoreText.grow(70, 70);
-        //p2ScoreText.grow(70, 70);
-
-
-
         back.setColor(Color.BLACK);
         //player1.rectangle.setColor(Color.RED);
         //player2.rectangle.setColor(Color.BLUE);
@@ -96,12 +99,31 @@ public class Match implements Interactable {
         //goal2.setColor(Color.BLACK);
         field.field.setColor(Color.BLACK);
 
-        try {
-            background = new Background();
-        } catch (UnsupportedAudioFileException | LineUnavailableException | IOException e) {
-            throw new RuntimeException(e);
+        thread = new Thread(matchMusic);
+        initiated = true;
+
+        if (timeLimit > 0) {
+            ActionListener countdown = new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {
+                    timeRemainingText.delete();
+                    timeRemaining--;
+                    int minutes = timeRemaining / 60;
+                    int seconds = timeRemaining % 60;
+                    String timeText = String.format("%02d:%02d", minutes, seconds);
+                    timeRemainingText = new Text(FIELD_WIDTH / 2, 100, timeText);
+                    timeRemainingText.setColor(Color.WHITE);
+                    timeRemainingText.grow(30, 30);
+                    timeRemainingText.draw();
+
+                    if (timeRemaining <= 0) {
+                        // Stop the game
+                        closeGame(evt);
+                    }
+                }
+            };
+
+            timer = new Timer(1000, countdown);
         }
-        thread = new Thread(background);
 
         showGame();
         runMusic();
@@ -111,21 +133,18 @@ public class Match implements Interactable {
     }
 
     public void runMusic(){
-        background.run();
+        matchMusic.run();
     }
 
     public void stopMusic(){
-        background.stopMusic();
+        matchMusic.stopMusic();
     }
 
     public void resumeMusic(){
-        background.resumeMusic();
+        matchMusic.resumeMusic();
     }
 
     public void showGame(){
-
-
-        pPressed = false;
         game.setKeyboardListenerEntity(this);
 
         back.fill();
@@ -142,12 +161,23 @@ public class Match implements Interactable {
         goal1Front.draw();
         goal2Front.draw();
 
-        p1ScoreText = new Text(FIELD_WIDTH/2,50,p1Score + " : " + p2Score);
-        p1ScoreText.setColor(Color.WHITE);
-        p1ScoreText.grow(70, 70);
-        p1ScoreText.draw();
-        //p2ScoreText.draw();
+        scoreText = new Text(FIELD_WIDTH/2,30,p1Score + " : " + p2Score);
+        scoreText.setColor(Color.WHITE);
+        scoreText.grow(50, 50);
+        scoreText.draw();
+        if(timeLimit > 0) {
+            int minutes = timeRemaining / 60;
+            int seconds = timeRemaining % 60;
+            String timeText = String.format("%02d:%02d", minutes, seconds);
+            timeRemainingText = new Text(FIELD_WIDTH / 2, 100, timeText);
+            timeRemainingText.setColor(Color.WHITE);
+            timeRemainingText.grow(30, 30);
+            timeRemainingText.draw();
+        }
+
+
         resumeMusic();
+        isPaused = false;
     }
 
     private void hideGame(){
@@ -159,9 +189,51 @@ public class Match implements Interactable {
         goal2.delete();
         field.field.delete();
         field.picture.delete();
-        p1ScoreText.delete();
+        scoreText.delete();
+        if(timeLimit > 0) {
+            timeRemainingText.delete();
+            timer.stop();
+        }
         stopMusic();
+        isPaused = true;
     }
+
+    private void closeGame(){
+        player1.rectangle.delete();
+        player2.rectangle.delete();
+        //ball.ellipse.delete();
+        ball.picture.delete();
+        goal1.delete();
+        goal2.delete();
+        field.field.delete();
+        field.picture.delete();
+        scoreText.delete();
+        stopMusic();
+        initiated = false;
+        game.setMatchOpen(false);
+        game.setMenuOpen(true);
+    }
+
+    private void closeGame(ActionEvent evt){
+        player1.rectangle.delete();
+        player2.rectangle.delete();
+        //ball.ellipse.delete();
+        ball.picture.delete();
+        goal1.delete();
+        goal2.delete();
+        field.field.delete();
+        field.picture.delete();
+        scoreText.delete();
+        if(timeLimit > 0) {
+            timeRemainingText.delete();
+            ((Timer) evt.getSource()).stop();
+        }
+        stopMusic();
+        initiated = false;
+        game.setMatchOpen(false);
+        game.setMenuOpen(true);
+    }
+
 
     void applyGravity() {
         if (!ball.isCollidingWithFloor(field)) {
@@ -209,33 +281,40 @@ public class Match implements Interactable {
 
     public void checkGoal(Picture[] goals){
         if(ball.isGoalLeft(goal1)){
+            goalSound.runOnce();
             p2Score++;
             resetGame();
             //System.out.println("Goal");
         }
         if(ball.isGoalRight(goal2)){
+            goalSound.runOnce();
             p1Score++;
             resetGame();
             //System.out.println("Goal");
         }
+
     }
 
     public void resetGame(){
         hideGame();
         ball = new Ball2((double) FIELD_WIDTH /2, (double) FIELD_HEIGHT /2, 19);
-        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, 56, 28, "data/sprites/spr_slime_classic.png");
-        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, 56, 28, "data/sprites/spr_slime_female.png");
-        player2.rectangle.grow(-56, 0);
+        player1 = new Player2(PADDING + 65, FIELD_HEIGHT + PADDING - 50, character1);
+        player2 = new Player2(FIELD_WIDTH - 115, FIELD_HEIGHT + PADDING - 50, character2);
+        player2.rectangle.grow(-player2.width, 0);
         showGame();
     }
 
-
     public void play() {
 
-        while (true) {
+        while (initiated) {
             long startTime = System.currentTimeMillis();
 
-            if (!game.isPauseGame()) {
+            if (!isPaused) {
+
+                if(timeLimit > 0 && !timer.isRunning()) {
+                    timer.start();
+                }
+
                 // Game Loop Logic Start
 
                 /*System.out.println("Posição logica do player1: " + player1.logicalPosition);
@@ -258,7 +337,7 @@ public class Match implements Interactable {
                 //System.out.println("Movimento da bola: " + ball.movement);
 
                 // Collision Detection and Response
-                ball.checkCollisions(new Player2[]{player1, player2}, field, new Picture[]{goal1, goal2});
+                ball.checkCollisions(new Player2[]{player1, player2}, field, new Picture[]{goal1, goal2}, hittingGoalSound);
                 player1.checkCollisions(field);
                 player2.checkCollisions(field);
 
@@ -270,13 +349,19 @@ public class Match implements Interactable {
                 // Check goal
                 checkGoal(new Picture[]{goal1, goal2});
 
-
                 // Game Loop Logic End
+
+                if (goalLimit > 0 && (p1Score == goalLimit || p2Score == goalLimit)){
+                    closeGame();
+                }
             }
 
-            if(game.isPauseGame() && !game.isMenuOpen()){
+            if(isPaused){
                 hideGame();
-                game.openMenu();
+                //game.setMenuOpen(true);
+                if (!game.isMenuOpen()){
+                    game.openMenu();
+                }
             }
 
             // Delay for next frame
@@ -327,12 +412,13 @@ public class Match implements Interactable {
             dPressed = false;
         }
         if (key == KeyboardEvent.KEY_P) {
-            game.setPauseGame(true);
+            game.setMatchPause(true);
+            isPaused = true;
         }
         if (key == KeyboardEvent.KEY_ESC) {
             System.exit(0);
         }
-        if (key == KeyboardEvent.KEY_T) {
+/*        if (key == KeyboardEvent.KEY_T) {
             System.out.println(field);
             System.out.println("Posição X do field na Canvas: " + field.field.getX());
             System.out.println("Posição Y do field na Canvas: " + field.field.getY());
@@ -364,7 +450,7 @@ public class Match implements Interactable {
             System.out.println("distanceToGoal1Edge :" + (Math.sqrt(Math.pow(ball.logicalPosition.x - goal1.getMaxX(), 2) + Math.pow(ball.logicalPosition.y - goal1.getY(), 2))));
             System.out.println("distanceToGoal2Edge :" + (Math.sqrt(Math.pow(ball.logicalPosition.x - goal2.getMaxX(), 2) + Math.pow(ball.logicalPosition.y - goal2.getY(), 2))));
             System.out.println("\n");
-        }
+        }*/
     }
 
 }

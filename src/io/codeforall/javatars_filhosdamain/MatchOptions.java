@@ -20,10 +20,12 @@ public class MatchOptions implements Interactable{
         this.game = game;
         this.maxGoals = 10;
         this.timeLimit = 0;
+        moOptions[0] = "Goal limit: " + maxGoals;
+        moOptions[1] = "Time limit: No limit";
     }
 
     public void display() {
-        System.out.println("Match Options opened");
+        //System.out.println("Match Options opened");
         game.setKeyboardListenerEntity(this);
         isVisible = true;
         background = new Picture(10, 10, "data/sprites/feild.png");
@@ -78,19 +80,37 @@ public class MatchOptions implements Interactable{
                 if (maxGoals > 10){
                     maxGoals = 0;
                     moOptions[0] = "Goal limit: No limit";
+                    moTexts[0] = new Text(290, 120, moOptions[0]);
+                    moTexts[0].draw();
+                    updateMenuDisplay();
+                    break;
                 }
-                if (maxGoals == 1){
-                    moOptions[0] = "Goal limit: " + maxGoals;
-                }
+                moOptions[0] = "Goal limit: " + maxGoals;
+                moTexts[0] = new Text(290, 120, moOptions[0]);
                 moTexts[0].draw();
+                updateMenuDisplay();
                 break;
             case 1:
                 // Time Limit
-                // openBGC();
+                moTexts[1].delete();
+                timeLimit++;
+                if (timeLimit > 5){
+                    timeLimit = 0;
+                    moOptions[1] = "Time limit: No limit";
+                    moTexts[1] = new Text(290, 120 + 20, moOptions[1]);
+                    moTexts[1].draw();
+                    updateMenuDisplay();
+                    break;
+                }
+                moOptions[1] = "Time limit: " + timeLimit + " min";
+                moTexts[1] = new Text(290, 120 + 20, moOptions[1]);
+                moTexts[1].draw();
+                updateMenuDisplay();
                 break;
             case 2:
                 // Go Back
                 clearDisplay();
+                game.reloadOptions();
                 game.setConfigOpen(true);
                 break;
         }

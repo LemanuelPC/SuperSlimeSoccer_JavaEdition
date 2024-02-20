@@ -79,7 +79,7 @@ public class Ball2 {
         return this.movement.velocity.magnitude != 0;
     }
 
-    void checkCollisions(Player2[] players, Field field, Picture[] goals) {
+    void checkCollisions(Player2[] players, Field field, Picture[] goals, Sounds hittingGoalSound) {
         for (Player2 player : players) {
             if (intersectsPlayer(player)) {
                 
@@ -204,8 +204,12 @@ public class Ball2 {
 
         for (Picture goal : goals) {
             if (isCollidingWithTopBar(goal)) {
+                hittingGoalSound.runOnce();
                 // Adjust velocity for realistic bounce off the top bar
-                movement.velocity.y = -movement.velocity.y * 1.1; // Reflect and attenuate Y velocity
+                movement.velocity.y = -movement.velocity.y * 0.8; // Reflect and attenuate Y velocity
+                if (movement.velocity.x < 0.4){
+                    movement.velocity.x *= 1.2;
+                }
 
                 // Update magnitude and direction based on the new velocity
                 movement.velocity.updateMagnitude();
@@ -213,8 +217,9 @@ public class Ball2 {
                 break;
             }
             if (shouldAdjustXVelocity(goal)) {
-                movement.velocity.y = -movement.velocity.y * 1.1; // Reflect and attenuate Y velocity
-                movement.velocity.x *= -ATTENUATION; // Reflect and attenuate X velocity for edge collisions
+                hittingGoalSound.runOnce();
+                movement.velocity.y = -movement.velocity.y * 0.8; // Reflect and attenuate Y velocity
+                movement.velocity.x *= -0.8; // Reflect and attenuate X velocity for edge collisions
                 movement.velocity.updateMagnitude();
                 movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
                 break;

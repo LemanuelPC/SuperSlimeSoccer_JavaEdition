@@ -20,7 +20,7 @@ public class Config implements Interactable {
     }
 
     public void display() {
-        System.out.println("Config opened");
+      //  System.out.println("Config opened");
         game.setKeyboardListenerEntity(this);
         isVisible = true;
         background = new Picture(10, 10, "data/sprites/feild.png");
@@ -70,19 +70,22 @@ public class Config implements Interactable {
         switch (currentOption) {
             case 0:
                 // Match Options
+                clearDisplay();
                 game.setMatchOptionsOpen(true);
                 break;
             case 1:
-                // Background Chooser
-                // openBGC();
+                clearDisplay();
+                game.setBackgroundChooserOpen(true);
                 break;
             case 2:
                 // Character Chooser
-                // openCC();
+                clearDisplay();
+                game.setCharacterChooserOpen(true);
                 break;
             case 3:
                 // Sounds Controls
-                // openSC();
+                clearDisplay();
+                game.setSoundsControlsOpen(true);
                 break;
             case 4:
                 // Go Back

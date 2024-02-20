@@ -12,14 +12,14 @@ public class Player2 {
     double width;
     double height;
 
-    public Player2(double x, double y, double width, double height, String path) {
+    public Player2(double x, double y, String path) {
         //this.rectangle = new Rectangle(x, y, width, height);
         this.rectangle = new Picture(x, y, path);
+        this.width = rectangle.getWidth();
+        this.height = rectangle.getHeight();
         this.logicalPosition = new Position(x + height, y+height); // Assuming center bottom position
         this.graphicalPosition = new Position(x + height, y+height);
         this.movement = new Movement(); // Start with no initial movement
-        this.width = width;
-        this.height = height;
     }
 
     public boolean isCollidingWithFloor(Field field) {
@@ -104,10 +104,10 @@ public class Player2 {
         movement.direction = Math.atan2(movement.velocity.y, movement.velocity.x);
 
         if(rectangle.getWidth() > 0 && direction == -1){
-            rectangle.grow(-56, 0);
+            rectangle.grow(-width, 0);
         }
         if(rectangle.getWidth() < 0 && direction == 1){
-            rectangle.grow(56, 0);
+            rectangle.grow(width, 0);
         }
 
     }
